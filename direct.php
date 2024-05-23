@@ -20,9 +20,10 @@ if (isset($argv[3]) && is_numeric($argv[3]))
 if (isset($argv[4]))
     $data['msgPattern'] = $argv[4];
 
-$status = direct($data['server'], 5);
+$status = direct($data['server'], $data['tries'] ?? 5);
 if (($status || empty($data[!$status])
-        || date_create($data[!$status] ?? '') < date_create('-180 sec'))
+        || date_create($data[!$status] ?? '')
+        < date_create($data['wait'] ?? '-180 sec'))
     && (($data['current'] ?? '') != $status)
 ) {
     $data['current'] = $status;
@@ -42,3 +43,5 @@ if (($status || empty($data[!$status])
 save($data, "direct_$dev");
 
 tg($msg ?? null, $data['tgChat'] ?? null);
+
+exit($status);

@@ -29,6 +29,7 @@ php direct.php test google.com {telegram_chat_id} "{status:🔴|🟢} Test {stat
 ### Crontab:
 ```
 */1 * * * * php /path/to/project/direct.php test
+*/1 * * * * php /path/to/project/direct.php test_https && php /path/to/project/direct.php test_http
 ```
 
 ## License
