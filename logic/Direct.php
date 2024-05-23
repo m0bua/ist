@@ -25,7 +25,7 @@ class Direct
             $this->cfg->set('msgPattern', $argv[4]);
     }
 
-    public function status(): bool
+    public function status(): int
     {
         $this->test();
         $wait = date_create($this->cfg->get('wait', '-180 sec'));
@@ -50,7 +50,7 @@ class Direct
 
         if (isset($msg)) (new Message)->send($msg, $this->cfg->get('tgChat'));
 
-        return $this->status;
+        return (int)!$this->status;
     }
 
     protected function test(): void

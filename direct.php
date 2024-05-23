@@ -2,4 +2,4 @@
 
 include 'bootstrap.php';
 
-exit((int)(new Direct($argv))->status());
+exit((new Direct($argv))->status());
