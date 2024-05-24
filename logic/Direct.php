@@ -28,7 +28,7 @@ class Direct
     public function status(): int
     {
         $this->test();
-        $wait = date_create($this->cfg->get('wait', '-180 sec'));
+        $wait = date_create($this->cfg->get('wait', '-1 sec'));
         $oDate = $this->cfg->get((int)!$this->status, '');
         if (
             (empty($oDate) || date_create($oDate) < $wait)
@@ -41,14 +41,14 @@ class Direct
                     'dev' => $this->dev,
                     'status' => $this->status,
                     'after' => Helper::after($oDate, false),
-                ])
-                : ($this->status ? '🟢' : '🔴')
+                ]) : ($this->status ? '🟢' : '🔴')
                 . ' ' . $this->dev . ' status is '
                 . ($this->status ? 'on' : 'off')
                 . Helper::after($oDate) . '.';
         }
 
         if (isset($msg)) (new Message)->send($msg, $this->cfg->get('tgChat'));
+        else echo "Nothing changed.\n";
 
         return (int)!$this->status;
     }
