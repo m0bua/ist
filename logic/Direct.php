@@ -2,27 +2,43 @@
 
 class Direct
 {
+    private const PARAMS = [
+        's' => 'server',
+        'tgc' => 'tgChat',
+        'msg' => 'msgPattern',
+        'w' => 'wait',
+        't' => 'tries',
+        'to' => 'timeout',
+        'c' => 'current',
+        'reset',
+    ];
+
     private string $dev;
     private Config $cfg;
     private bool $status = false;
 
     public function __construct($argv)
     {
-        if (count($argv) < 2 || count($argv) > 5)
-            die('Usage: php direct.php test google.com {telegram_chat_id}'
-                . "'{status:\ud83d\udd34|\ud83d\udfe2} "
-                . 'Test {status:offline|online}'
-                . "{after: after #}!'\n");
+        $cfg = [];
+        $example = "Usage: php direct.php test\nParams:\n";
+        parse_str(implode('&', array_slice($argv, 2)), $params);
+        foreach (self::PARAMS as $short => $param) {
+            if (isset($params[$short])) $cfg[$param] = $params[$short];
+            if (isset($params[$param])) $cfg[$param] = $params[$param];
+            if (is_string($short)) $param .= '|' . $short;
+            $example .= $param . "\n";
+        }
+
+        if (count($argv) < 2) {
+            die($example);
+        }
         $this->dev = $argv[1];
+
         $this->cfg = new Config('direct_' . $this->dev);
-        if (isset($argv[2]))
-            $this->cfg->set('server', $argv[2]);
+        foreach ($cfg as $key => $item) $this->cfg->set($key, $item);
+
         if (empty($this->cfg->get('server')))
             die("No server selected!\n");
-        if (isset($argv[3]) && is_numeric($argv[3]))
-            $this->cfg->set('tgChat', $argv[3]);
-        if (isset($argv[4]))
-            $this->cfg->set('msgPattern', $argv[4]);
     }
 
     public function status(): int
