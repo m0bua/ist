@@ -44,10 +44,10 @@ class Direct
     public function status(): int
     {
         $this->test();
-        $wait = date_create($this->cfg->get('wait', '-1 sec'));
+        $wait = date_create($this->cfg->get('wait', '-180 sec'));
         $oDate = $this->cfg->get((int)!$this->status, '');
         if (
-            (empty($oDate) || date_create($oDate) < $wait)
+            ($this->status || empty($oDate) || date_create($oDate) < $wait)
             && ($this->cfg->get('current') !== $this->status)
         ) {
             $this->cfg->set('current', $this->status);
@@ -56,11 +56,11 @@ class Direct
                 ? Helper::msgPrepare($this->cfg->get('msgPattern'), [
                     'dev' => $this->dev,
                     'status' => $this->status,
-                    'after' => Helper::after($oDate, false),
+                    'after' => Helper::after($oDate),
                 ]) : ($this->status ? '🟢' : '🔴')
                 . ' ' . $this->dev . ' status is '
                 . ($this->status ? 'on' : 'off')
-                . Helper::after($oDate) . '.';
+                . Helper::after($oDate, true) . '.';
         }
 
         if (isset($msg)) (new Message)->send($msg, $this->cfg->get('tgChat'));
