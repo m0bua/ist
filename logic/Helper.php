@@ -1,6 +1,8 @@
 <?php
 class Helper
 {
+    private static ?DateTimeZone $tz = null;
+
     public static function after(?string $date, bool $withPref = false): string
     {
         $result = '';
@@ -37,7 +39,10 @@ class Helper
 
     public static function dateFormat(?string $date): string
     {
-        return empty($date) ? '' : date_create($date)->format('Y.m.d H:i');
+        return empty($date) ? ''
+            : date_create($date)
+            ->setTimezone(self::tz())
+            ->format('Y.m.d H:i');
     }
 
     public static function getDataJson(): string
@@ -72,11 +77,18 @@ class Helper
                     ['tag' => 'td', 'upd' => true, 'params' => [
                         'style' => ['color' => $status ? 'green' : 'red']
                     ], 'text' => $status ? 'On' : 'Off'],
-                    ['tag' => 'td', 'upd' => true, 'text' => Helper::after($cfg->get((int)!$status))],
+                    ['tag' => 'td', 'upd' => true, 'text' => Helper::after($cfg->get((int)$status))],
                     ['tag' => 'td', 'upd' => true, 'text' => Helper::dateFormat($cfg->get(1))],
                     ['tag' => 'td', 'upd' => true, 'text' => Helper::dateFormat($cfg->get(0))],
                 ]];
             }
         }
+    }
+
+    public static function tz(): ?DateTimeZone
+    {
+        if (isset($_GET['tz'])) self::$tz = new DateTimeZone($_GET['tz']);
+
+        return self::$tz;
     }
 }

@@ -5,9 +5,7 @@ if (isset($_GET['format']) && $_GET['format'] === 'json') {
     header('Content-Type: application/json; charset=utf-8');
     echo Helper::getDataJson();
     exit;
-}
-
-?>
+} ?>
 
 <head>
     <style>
@@ -42,7 +40,7 @@ if (isset($_GET['format']) && $_GET['format'] === 'json') {
             text-align: center;
         }
 
-        br{
+        br {
             font-size: 1.7em;
         }
     </style>
@@ -54,12 +52,13 @@ if (isset($_GET['format']) && $_GET['format'] === 'json') {
     let get = new URLSearchParams((new URL(window.location.href)).search),
         timeout = get.has('t') ? get.get('t') : 1;
 
-    fill()
+    fill();
 
     function fill() {
         setTimeout(fill, timeout * 1000);
-        let xmlhttp = new XMLHttpRequest();
-        xmlhttp.open("GET", "/?format=json", false);
+        let xmlhttp = new XMLHttpRequest(),
+            tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        xmlhttp.open("GET", "/?format=json&tz=" + tz, false);
         xmlhttp.send();
 
         element(document.getElementById('body'), JSON.parse(xmlhttp.responseText));
