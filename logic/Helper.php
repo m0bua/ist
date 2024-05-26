@@ -40,18 +40,43 @@ class Helper
         return empty($date) ? '' : date_create($date)->format('Y.m.d H:i');
     }
 
-    public static function getRow(string $dev, Config $cfg, int $span = 1): string
+    public static function getDataJson(): string
     {
-        $status = $cfg->get('current');
+        $result = [['tag' => 'br'], ['tag' => 'table', 'children' => [
+            ['tag' => 'tr', 'children' => [
+                ['tag' => 'th', 'params' => ['colspan' => 2], 'text' => 'Device'],
+                ['tag' => 'th', 'text' => 'Status'],
+                ['tag' => 'th', 'text' => 'Last change'],
+                ['tag' => 'th', 'text' => 'Last On'],
+                ['tag' => 'th', 'text' => 'Last Off'],
+            ]]
+        ]]];
 
-        return strtr(file_get_contents(ROOT . '/views/row.txt'), [
-            '{span}' => $span,
-            '{name}' => $dev,
-            '{color}' => $status ? 'green' : 'red',
-            '{status}' => $status ? 'On' : 'Off',
-            '{after}' => Helper::after($cfg->get((int)!$status)),
-            '{1}' => Helper::dateFormat($cfg->get(1)),
-            '{0}' => Helper::dateFormat($cfg->get(0)),
-        ]);
+        self::getDataJsonRow(Config::all(), $result[count($result) - 1]['children'], 2);
+
+        return json_encode($result);
+    }
+
+    private static function getDataJsonRow(array $confis, array &$result, int $span = 1)
+    {
+        foreach ($confis as $dev => $cfg) {
+            if (is_array($cfg)) {
+                $result[] = ['tag' => 'tr', 'children' => [
+                    ['tag' => 'td', 'params' => ['rowspan' => count($cfg) + 1], 'text' => strtoupper($dev)],
+                ]];
+                self::getDataJsonRow($cfg, $result);
+            } else {
+                $status = $cfg->get('current');
+                $result[] = ['tag' => 'tr', 'children' => [
+                    ['tag' => 'td', 'params' => ['colspan' => $span], 'text' => strtoupper($dev)],
+                    ['tag' => 'td', 'upd' => true, 'params' => [
+                        'style' => ['color' => $status ? 'green' : 'red']
+                    ], 'text' => $status ? 'On' : 'Off'],
+                    ['tag' => 'td', 'upd' => true, 'text' => Helper::after($cfg->get((int)!$status))],
+                    ['tag' => 'td', 'upd' => true, 'text' => Helper::dateFormat($cfg->get(1))],
+                    ['tag' => 'td', 'upd' => true, 'text' => Helper::dateFormat($cfg->get(0))],
+                ]];
+            }
+        }
     }
 }

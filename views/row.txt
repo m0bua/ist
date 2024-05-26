@@ -1,7 +1,0 @@
-<tr>
-    <td colspan="{span}">{name}</td>
-    <td style="color:{color}">{status}</td>
-    <td class="after">{after}</td>
-    <td>{1}</td>
-    <td>{0}</td>
-</tr>
