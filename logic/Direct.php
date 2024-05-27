@@ -44,10 +44,9 @@ class Direct
     public function status(): int
     {
         $this->test();
-        $wait = date_create($this->cfg->get('wait', '-180 sec'));
         $oDate = $this->cfg->get((int)!$this->status, '');
         if (
-            ($this->status || empty($oDate) || date_create($oDate) < $wait)
+            ($this->status || !Helper::changed($this->cfg))
             && ($this->cfg->get('current') !== $this->status)
         ) {
             $this->cfg->set('current', $this->status);

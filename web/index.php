@@ -58,7 +58,7 @@ if (isset($_GET['format']) && $_GET['format'] === 'json') {
         setTimeout(fill, timeout * 1000);
         let xmlhttp = new XMLHttpRequest(),
             tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        xmlhttp.open("GET", "/?format=json&tz=" + tz, false);
+        xmlhttp.open("GET", "/?format=json&t=" + timeout + '&z=' + tz, false);
         xmlhttp.send();
 
         element(document.getElementById('body'), JSON.parse(xmlhttp.responseText));
