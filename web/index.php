@@ -19,14 +19,14 @@ if (isset($_GET['format']) && $_GET['format'] === 'json') {
         }
 
         table {
-            width: 80%;
-            margin: 0 10%;
+            margin: 0 auto;
         }
 
         table,
         th,
         td {
-            border: 1px solid #646464;
+            font-size: 2.5vw;
+            border: 1.7px solid #646464;
             border-collapse: collapse;
         }
 
@@ -41,7 +41,7 @@ if (isset($_GET['format']) && $_GET['format'] === 'json') {
         }
 
         br {
-            font-size: 1.7em;
+            font-size: 3em;
         }
     </style>
 </head>
