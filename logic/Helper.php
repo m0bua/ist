@@ -4,26 +4,9 @@ class Helper
     private const DEFAULT_WAIT = '180';
     private static ?DateTimeZone $tz = null;
 
-    public static function msgPrepare(string $pattern, array $params): string
-    {
-        preg_match_all('/{[^}]+}/', $pattern, $matches);
-        foreach (reset($matches) as $item) {
-            $trim = trim($item, '{}');
-            if (strpos($trim, ':')) {
-                [$key, $field] = explode(':', $trim);
-                if (strpos($field, '#'))
-                    $field = empty($params[$key]) ? '' : str_replace('#', $params[$key], $field);
-                elseif (strpos($field, '|'))
-                    $field = explode('|', $field)[$params[$key]];
-            }
-            $pattern = str_replace($item, $field ?? $params[$trim] ?? '', $pattern);
-        }
-
-        return $pattern;
-    }
-
     public static function getDataJson(): string
     {
+        $configs = Config::all();
         $result = [['tag' => 'br'], ['tag' => 'table', 'children' => [
             ['tag' => 'tr', 'children' => [
                 ['tag' => 'th', 'params' => ['colspan' => 2], 'text' => 'Device'],
@@ -34,7 +17,7 @@ class Helper
             ]]
         ]]];
 
-        self::getDataJsonRow(Config::all(), $result[count($result) - 1]['children'], 2);
+        self::getDataJsonRow($configs, $result[count($result) - 1]['children'], 2);
 
         return json_encode($result);
     }
@@ -83,12 +66,29 @@ class Helper
         return self::$tz;
     }
 
-    private static function getDataJsonRow(array $confis, array &$result, int $span = 1)
+    public static function array(&$array, $key, $value)
     {
-        foreach ($confis as $dev => $cfg) {
+        if (is_null($key)) return $array = $value;
+        $keys = explode('_', $key);
+        while (count($keys) > 1) {
+            $key = array_shift($keys);
+            if (!isset($array[$key]) || !is_array($array[$key]))
+                $array[$key] = [];
+            $array = &$array[$key];
+        }
+        $array[array_shift($keys)] = $value;
+
+        return $array;
+    }
+
+    private static function getDataJsonRow(array $configs, array &$result, int $span = 1)
+    {
+        foreach ($configs as $dev => $cfg) {
             if (is_array($cfg)) {
                 $result[] = ['tag' => 'tr', 'children' => [
-                    ['tag' => 'td', 'params' => ['rowspan' => count($cfg) + 1], 'text' => strtoupper($dev)],
+                    ['tag' => 'td', 'params' => [
+                        'rowspan' => count($cfg) + 1,
+                    ], 'text' => strtoupper($dev)],
                 ]];
                 self::getDataJsonRow($cfg, $result);
             } else {
@@ -105,5 +105,18 @@ class Helper
                 ]];
             }
         }
+    }
+
+    private static function arrayMaxDepth(array $array): int
+    {
+        $depth = 1;
+        foreach ($array as $value) {
+            if (is_array($value)) {
+                $depth += self::arrayMaxDepth($value);
+                break;
+            }
+        }
+
+        return $depth;
     }
 }

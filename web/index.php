@@ -1,5 +1,10 @@
 <?php
+
 include '../bootstrap.php';
+
+if (isset($_GET['d']) || isset($_GET['dev']) || isset($_GET['device'])) {
+    exit((new Reverse($_GET, true))->request());
+}
 
 if (isset($_GET['format']) && $_GET['format'] === 'json') {
     header('Content-Type: application/json; charset=utf-8');
@@ -25,7 +30,7 @@ if (isset($_GET['format']) && $_GET['format'] === 'json') {
         table,
         th,
         td {
-            font-size: 2.5vw;
+            font-size: 2vw;
             border: 1.7px solid #646464;
             border-collapse: collapse;
         }
