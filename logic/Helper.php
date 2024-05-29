@@ -4,24 +4,6 @@ class Helper
     private const DEFAULT_WAIT = '180';
     private static ?DateTimeZone $tz = null;
 
-    public static function getDataJson(): string
-    {
-        $configs = Config::all();
-        $result = [['tag' => 'br'], ['tag' => 'table', 'children' => [
-            ['tag' => 'tr', 'children' => [
-                ['tag' => 'th', 'params' => ['colspan' => 2], 'text' => 'Device'],
-                ['tag' => 'th', 'text' => 'Status'],
-                ['tag' => 'th', 'text' => 'Last change'],
-                ['tag' => 'th', 'text' => 'Last On'],
-                ['tag' => 'th', 'text' => 'Last Off'],
-            ]]
-        ]]];
-
-        self::getDataJsonRow($configs, $result[count($result) - 1]['children'], 2);
-
-        return json_encode($result);
-    }
-
     public static function after(?string $date, bool $withPref = false): string
     {
         $result = '';
@@ -81,15 +63,40 @@ class Helper
         return $array;
     }
 
+    public static function getDataJson(): string
+    {
+        $configs = Config::all();
+        $depth = self::arrayMaxDepth($configs);
+        $result = [['tag' => 'br'], ['tag' => 'table', 'children' => [
+            ['tag' => 'tr', 'children' => [
+                ['tag' => 'th', 'params' => ['colspan' => $depth], 'text' => 'Device'],
+                ['tag' => 'th', 'text' => 'Status'],
+                ['tag' => 'th', 'text' => 'Last change'],
+                ['tag' => 'th', 'text' => 'Last On'],
+                ['tag' => 'th', 'text' => 'Last Off'],
+            ]]
+        ]]];
+        self::getDataJsonRow($configs, $result[count($result) - 1]['children'], $depth);
+
+        return json_encode($result);
+    }
+
     private static function getDataJsonRow(array $configs, array &$result, int $span = 1)
     {
         foreach ($configs as $dev => $cfg) {
             if (is_array($cfg)) {
-                $result[] = ['tag' => 'tr', 'children' => [
-                    ['tag' => 'td', 'params' => [
+                $row = ['tag' => 'tr'];
+                $depth = self::arrayMaxDepth($cfg);
+                while (true) {
+                    $row['children'][] = ['tag' => 'td', 'params' => [
                         'rowspan' => count($cfg) + 1,
-                    ], 'text' => strtoupper($dev)],
-                ]];
+                        'colspan' => $span - $depth,
+                    ], 'text' => strtoupper($dev)];
+                    $dev = array_key_first($cfg);
+                    if (!is_array($cfg[$dev])) break;
+                    $cfg = $cfg[$dev];
+                }
+                $result[] = $row;
                 self::getDataJsonRow($cfg, $result);
             } else {
                 $status = $cfg->get('current');
