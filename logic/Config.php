@@ -48,11 +48,7 @@ class Config
 
         foreach ($configs as $cfg) $all[self::getDev($cfg)] = new self($cfg);
 
-        if ($class) return $all;
-
-        foreach ($all as $k => $i) Helper::array($result, $k, $i);
-
-        return $result ?? [];
+        return $all;
     }
 
     public function getData()
