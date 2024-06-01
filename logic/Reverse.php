@@ -9,7 +9,7 @@ class Reverse
 
     private Config $cfg;
 
-    public function __construct(array $params, bool $remote = false)
+    function __construct(array $params, bool $remote = false)
     {
         $this->cfg = new Config(self::class, $remote ? [
             1 => $params['d'] ?? $params['dev'] ?? $params['device'],

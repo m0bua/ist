@@ -12,7 +12,7 @@ class Direct
     private Config $cfg;
     private bool $status = false;
 
-    public function __construct($argv)
+    function __construct($argv)
     {
         $this->cfg = new Config(self::class, $argv);
         if (empty($this->cfg->get('server')))

@@ -2,17 +2,21 @@
 
 include '../bootstrap.php';
 
-if (isset($_GET['d']) || isset($_GET['dev']) || isset($_GET['device'])) {
+if (!(new Auth)->cli()) {
+    exit(header('location: login.php'));
+} elseif (isset($_GET['d']) || isset($_GET['dev']) || isset($_GET['device'])) {
     exit((new Reverse($_GET, true))->request());
-}
-
-if (isset($_GET['format']) && $_GET['format'] === 'json') {
+} elseif (isset($_GET['format']) && $_GET['format'] === 'json') {
     header('Content-Type: application/json; charset=utf-8');
-    echo Helper::getDataJson();
-    exit;
+    exit(Helper::getDataJson());
 } ?>
+<!DOCTYPE html>
+<html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clients</title>
     <style>
         body {
             background-color: #161616;
@@ -96,3 +100,5 @@ if (isset($_GET['format']) && $_GET['format'] === 'json') {
         });
     }
 </script>
+
+</html>

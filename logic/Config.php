@@ -18,16 +18,16 @@ class Config
     private array $data = [];
     private array $origData = [];
 
-    public function __construct(string $class, array $argv = [])
+    function __construct(string $class, array $argv = [])
     {
         $this->class = $class;
         if (!empty($argv[1])) $this->name = $argv[1];
         $this->data = $this->origData = is_file($this->file())
-            ? json_decode(file_get_contents($this->file()), true) : [];
+            ? json_decode(file_get_contents($this->file()), true) ?? [] : [];
         if (in_array($this->type(), self::CFG_TYPES)) $this->argv($argv);
     }
 
-    public function __destruct()
+    function __destruct()
     {
         foreach (explode(',', $this->data['reset'] ?? '') as $field)
             if (
@@ -56,9 +56,18 @@ class Config
         return $this->data;
     }
 
-    public function get(string $field, mixed $default = null): mixed
+    public function get(?string $field = null, mixed $default = null): mixed
     {
-        return $this->data[$field] ?? $default;
+        $array = $this->data;
+        if (is_null($field)) return $array;
+        if (isset($array[$field])) return $array[$field];
+        foreach (explode('.', $field) as $segment) {
+            if (!is_array($array) || !array_key_exists($segment, $array)) {
+                return $default;
+            }
+            $array = $array[$segment];
+        }
+        return $array;
     }
 
     public function getOrig(?string $field = null, mixed $default = null): mixed

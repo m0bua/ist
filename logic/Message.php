@@ -3,7 +3,7 @@ class Message
 {
     private Config $cfg;
 
-    public function __construct()
+    function __construct()
     {
         $this->cfg = new Config('tg');
     }
