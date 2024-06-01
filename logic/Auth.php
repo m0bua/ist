@@ -34,13 +34,25 @@ class Auth
             $_GET['p'] ?? null,
         ]);
 
-        return $this->authorized();
+        return $this->authorized($_GET['d'] ?? null);
     }
 
-    public function authorized(): bool
+    public function authorized(?string $client = null): bool
     {
-        return ($this->session['auth'] ?? false) === true &&
-            $this->cfg->get(($this->session['user'] ?? null) . '.auth', false);
+        $user = ($this->session['user'] ?? null);
+
+        $result = ($this->session['auth'] ?? false) === true &&
+            $this->cfg->get("$user.auth", false);
+
+        if (empty($client)) {
+            $result = $result &&
+                !$this->cfg->get("$user.client", false);
+        } else {
+            $result = $result &&
+                $this->cfg->get("$user.client", false) === $client;
+        }
+
+        return $result;
     }
 
     private function autorize(array $params): void

@@ -4,7 +4,7 @@ include '../bootstrap.php';
 
 if (!(new Auth)->cli()) {
     exit(header('location: login.php'));
-} elseif (isset($_GET['d']) || isset($_GET['dev']) || isset($_GET['device'])) {
+} elseif (isset($_GET['d'])) {
     exit((new Reverse($_GET, true))->request());
 } elseif (isset($_GET['format']) && $_GET['format'] === 'json') {
     header('Content-Type: application/json; charset=utf-8');

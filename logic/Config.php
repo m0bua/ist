@@ -73,6 +73,12 @@ class Config
         return $this->data;
     }
 
+    public function getOrig(?string $field = null, mixed $default = null): mixed
+    {
+        return empty($field) ? $this->origData
+            : $this->origData[$field] ?? $default;
+    }
+
     public function get(?string $field = null, mixed $default = null): mixed
     {
         $array = $this->data;
@@ -87,15 +93,14 @@ class Config
         return $array;
     }
 
-    public function getOrig(?string $field = null, mixed $default = null): mixed
-    {
-        return empty($field) ? $this->origData
-            : $this->origData[$field] ?? $default;
-    }
-
     public function set(string $field, mixed $value): void
     {
         $this->data[$field] = $value;
+    }
+
+    public function unset(string $field): void
+    {
+        unset($this->data[$field]);
     }
 
     public function changed(string $field)
@@ -141,13 +146,20 @@ class Config
         $help = $this->class::HELP ?? "Params:\n";
 
         $cfg = [];
-        parse_str(implode('&', array_slice($argv, 2)), $params);
+
+        $params = array_slice($argv, 2);
+        $params = array_values($params) === $params
+            ? implode('&', $params) : http_build_query($params);
+
+        parse_str($params, $params);
+
         foreach ($fields ?? [] as $short => $param) {
             if (isset($params[$short])) $cfg[$param] = $params[$short];
             if (isset($params[$param])) $cfg[$param] = $params[$param];
             if (is_string($short)) $param .= '|' . $short;
             $help .= $param . "\n";
         }
+
 
         if (count($argv) < 2) die($help);
 

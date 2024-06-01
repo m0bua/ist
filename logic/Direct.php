@@ -38,8 +38,9 @@ class Direct
         ) {
             $this->cfg->set('current', $this->status);
             $this->cfg->set((int)$this->status, date_create()->format('c'));
-            (new Message)->send($this->cfg);
-        } else echo "Nothing changed.\n";
+        }
+
+        (new Message)->send($this->cfg);
     }
 
     private function test(): void

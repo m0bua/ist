@@ -10,9 +10,18 @@ class Message
 
     public function send(Config $cfg): void
     {
-        $text = self::prepare($cfg);
+        if ($cfg->changed('current'))
+            $text[] = self::prepare($cfg);
 
-        if (empty($text)) return;
+        if ($cfg->changed('message'))
+            $text[] = $cfg->get('message');
+
+        if (empty($text)) {
+            echo "Nothing changed.\n";
+            return;
+        }
+
+        $text = implode("\n", $text);
 
         echo $text . "\n";
 
