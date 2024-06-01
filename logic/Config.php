@@ -1,7 +1,7 @@
 <?php
 class Config
 {
-    private const CFG_TYPES = [
+    public const CFG_TYPES = [
         'direct',
         'reverse',
     ];
@@ -18,9 +18,10 @@ class Config
     private array $data = [];
     private array $origData = [];
 
-    function __construct(string $class, array $argv = [])
+    function __construct(...$argv)
     {
-        $this->class = $class;
+        [$file] = explode('.', $argv[0]);
+        $this->class = ucfirst($file);
         if (!empty($argv[1])) $this->name = $argv[1];
         $this->data = $this->origData = is_file($this->file())
             ? json_decode(file_get_contents($this->file()), true) ?? [] : [];
@@ -39,7 +40,7 @@ class Config
             file_put_contents($this->file(), json_encode($this->data) . "\n");
     }
 
-    public static function all(?string $class = null): array
+    public static function all(?string $class = null, bool $activeOnly = false): array
     {
         $configs = array_map(fn ($i) => explode('.', $i), scandir(ROOT . '/cfg/'));
         $configs = array_filter($configs, fn ($i) => count($i) === 2
@@ -48,7 +49,23 @@ class Config
 
         foreach ($configs as $cfg) $all[self::getDev($cfg)] = new self($cfg);
 
-        return $all;
+        if ($activeOnly) $all = array_filter($all ?? [], fn ($c) => $c->get('active'));
+
+        return $all ?? [];
+    }
+
+    public function change(string $field, mixed $val = null): bool
+    {
+        if (
+            is_bool($this->get($field))
+            || $field === 'active'
+        ) {
+            $this->set($field, !$this->get($field));
+        } else {
+            $this->set($field, $val);
+        }
+
+        return true;
     }
 
     public function getData()
@@ -91,7 +108,10 @@ class Config
 
     public function name()
     {
-        return $this->name;
+        $name = $this->type();
+        if (!empty($this->name)) $name .= '_' . $this->name;
+
+        return $name;
     }
 
     private static function getDev(string $cfg, ?string $class = null): ?string
@@ -107,10 +127,7 @@ class Config
 
     private function file()
     {
-        $name = $this->type();
-        if (!empty($this->name)) $name .= '_' . $this->name;
-
-        return ROOT . '/cfg/' . $name . '.json';
+        return ROOT . '/cfg/' . $this->name() . '.json';
     }
 
     private function type()

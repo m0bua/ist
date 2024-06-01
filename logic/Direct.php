@@ -14,13 +14,23 @@ class Direct
 
     function __construct($argv)
     {
-        $this->cfg = new Config(self::class, $argv);
+        $this->cfg = new Config(...$argv);
         if (empty($this->cfg->get('server')))
             die("No server selected!\n");
     }
 
-    public function status(): void
+    public static function checkAll(array $argv = []): void
     {
+        if (empty($argv[1])) {
+            foreach (array_keys(Config::all(self::class, true)) as $dev) {
+                (new self([self::class, $dev]))->check();
+            }
+        } else (new self($argv))->check();
+    }
+
+    private function check(): void
+    {
+        echo "### " . strtoupper($this->cfg->name()) . "\n";
         $this->test();
         if (
             ($this->status || !Helper::changed($this->cfg))
@@ -32,7 +42,7 @@ class Direct
         } else echo "Nothing changed.\n";
     }
 
-    protected function test(): void
+    private function test(): void
     {
         $tries = $this->cfg->get('tries') ?? 5;
         $wait = $this->cfg->get('timeout') ?? 5;

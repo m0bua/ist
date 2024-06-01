@@ -88,7 +88,7 @@ class Helper
                             - count($split[$dev]) + 1 : 1,
                     ], 'text' => strtoupper($name)];
             }
-            $result[] = ['tag' => 'tr', 'children' => array_merge($children, [
+            $row = ['tag' => 'tr', 'children' => array_merge($children, [
                 ['tag' => 'td', 'upd' => $upd, 'params' => [
                     'style' => ['color' => $status ? 'green' : 'red']
                 ], 'text' => $status ? 'On' : 'Off'],
@@ -96,6 +96,16 @@ class Helper
                 ['tag' => 'td', 'upd' => $upd, 'text' => self::dateFormat($cfg->get(1))],
                 ['tag' => 'td', 'upd' => $upd, 'text' => self::dateFormat($cfg->get(0))],
             ])];
+
+            $row['children'][] = ['tag' => 'td', 'upd' => $upd, 'children' => [[
+                'tag' => 'button', 'text' => $cfg->get('active') ? 'On' : 'Off',
+                'params' => [
+                    'id' => $cfg->name(), 'class' => 'isActive',
+                    'style' => ['background' => $cfg->get('active') ? 'green' : 'red']
+                ]
+            ]]];
+
+            $result[] = $row;
         }
 
         return $result ?? [];

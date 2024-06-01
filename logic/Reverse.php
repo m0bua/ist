@@ -3,7 +3,8 @@
 class Reverse
 {
     public const PARAMS = [
-        'c' => 'clients', //TODO: think
+        // 'c' => 'clients', //TODO: think
+        // 'm' => 'message', //TODO: think
     ];
     public const HELP = "Usage: php check.php test\nParams:\n";
 
@@ -11,25 +12,27 @@ class Reverse
 
     function __construct(array $params, bool $remote = false)
     {
-        $this->cfg = new Config(self::class, $remote ? [
-            1 => $params['d'] ?? $params['dev'] ?? $params['device'],
+        if ($remote) $params = [
+            self::class,
+            $params['d'] ?? $params['dev'] ?? $params['device'],
             'clients' => $params['c'] ?? $params['clients'] ?? 0,
-        ] : $params);
+        ];
+
+        $this->cfg = new Config(...$params);
     }
 
-    public static function checkAll(array $argv): void
+    public static function checkAll(array $argv = []): void
     {
-        if (isset($argv[1])) {
-            (new self($argv))->check();
-        } else {
-            foreach (Config::all(self::class) as $cfg) {
-                (new self($cfg->getOrig()))->check();
+        if (empty($argv[1])) {
+            foreach (array_keys(Config::all(self::class, true)) as $dev) {
+                (new self([self::class, $dev]))->check();
             }
-        }
+        } else (new self($argv))->check();
     }
 
     public function check(): void
     {
+        echo "### " . strtoupper($this->cfg->name()) . "\n";
         if ($this->cfg->get('current') && !Helper::changed($this->cfg)) {
             $this->cfg->set('current', false);
             $this->cfg->set(0, date_create()->format('c'));

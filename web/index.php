@@ -9,7 +9,10 @@ if (!(new Auth)->cli()) {
 } elseif (isset($_GET['format']) && $_GET['format'] === 'json') {
     header('Content-Type: application/json; charset=utf-8');
     exit(Helper::getDataJson());
-} ?>
+} elseif (isset($_GET['cfg']) && isset($_GET['name'])) {
+    exit((new Config($_GET['name']))->change($_GET['cfg']));
+}
+?>
 <!DOCTYPE html>
 <html>
 
@@ -52,6 +55,16 @@ if (!(new Auth)->cli()) {
         br {
             font-size: 3em;
         }
+
+        button {
+            font-weight: bolder;
+            font-size: 1.3vw;
+            width: 5em;
+            padding: 1em;
+            color: white;
+            border: none;
+            border-radius: 1em;
+        }
     </style>
 </head>
 
@@ -61,10 +74,25 @@ if (!(new Auth)->cli()) {
     let get = new URLSearchParams((new URL(window.location.href)).search),
         timeout = get.has('t') ? get.get('t') : 1;
 
+    setTimeout(changeIsActive, 100);
     fill();
 
-    function fill() {
-        setTimeout(fill, timeout * 1000);
+    function changeIsActive() {
+        var els = document.getElementsByClassName('isActive');
+        Array.prototype.forEach.call(els, function(el) {
+            el.onclick = function(event) {
+                let xmlhttp = new XMLHttpRequest();
+                xmlhttp.open("GET", "/?cfg=active&name=" + event.target.id, false);
+                xmlhttp.send();
+
+                if (xmlhttp.responseText === '1')
+                    window.location.href = window.location.href;
+            }
+        })
+    }
+
+    function fill(repeat = true) {
+        if (repeat) setTimeout(fill, timeout * 1000);
         let xmlhttp = new XMLHttpRequest(),
             tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         xmlhttp.open("GET", "/?format=json&t=" + timeout + '&z=' + tz, false);

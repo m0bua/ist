@@ -2,8 +2,8 @@
 
 class Auth
 {
-    protected Config $cfg;
-    protected array $session = [];
+    private Config $cfg;
+    private array $session = [];
 
     function __construct()
     {
