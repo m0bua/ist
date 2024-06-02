@@ -10,7 +10,7 @@ class Auth
     function __construct()
     {
         if (php_sapi_name() == 'cli') return;
-        session_start();
+        session_start(['cookie_lifetime' => 30 * 24 * 60 * 60]);
         $this->session = $_SESSION;
         $this->cfg = new Config('auth');
     }
@@ -23,20 +23,14 @@ class Auth
     public function start(): void
     {
         if (php_sapi_name() == 'cli') return;
-        $this->autorize(empty($_POST) ? [
-            $_GET['u'] ?? null,
-            $_GET['p'] ?? null,
-        ] : [
-            $_POST['username'] ?? null,
-            $_POST['password'] ?? null,
-        ]);
+        $this->autorize(empty($_POST)
+            ? [$_GET['u'] ?? null, $_GET['p'] ?? null]
+            : [$_POST['username'] ?? null, $_POST['password'] ?? null]);
 
-        if ($_SERVER['SCRIPT_NAME'] === self::LOGIN_FILE) {
-            if ($this->authorized($_GET['d'] ?? null))
-                exit(header('location: /'));
-        } elseif (!$this->authorized($_GET['d'] ?? null)) {
-            exit(header('location: login.php'));
-        }
+        if (
+            $_SERVER['SCRIPT_NAME'] === self::LOGIN_FILE
+            && !$this->authorized($_GET['d'] ?? null)
+        ) exit(header('location: login.php'));
     }
 
     public function authorized(?string $client = null): bool
@@ -88,6 +82,7 @@ class Auth
         }
         $user['last_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
         $this->cfg->set($u, $user);
+        if ($this->session['auth']) exit(header('location: /'));
     }
 
     private function hash(string $usr, string $pwd): string
