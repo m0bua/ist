@@ -12,12 +12,30 @@ include '../bootstrap.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <style>
+        body {
+            background-color: #161616;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            color: lightgray;
+            top: 0;
+        }
+
+        form {
+            margin-top: 10%;
+        }
+
         form input {
+            font-size: 1.3vw;
+            color: lightgray;
+            background-color: #161616;
             display: block;
-            padding: .2em;
+            padding: 1em 2em;
             width: auto;
             margin: 1em auto;
             box-sizing: content-box;
+            border: 1px lightgray solid;
+            border-radius: .3em;
         }
 
         form strong {

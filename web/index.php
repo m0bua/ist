@@ -35,7 +35,7 @@ if (isset($_GET['d'])) {
         table,
         th,
         td {
-            font-size: 2vw;
+            font-size: 1.3vw;
             border: 1.7px solid #646464;
             border-collapse: collapse;
         }
