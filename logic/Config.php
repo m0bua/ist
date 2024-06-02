@@ -49,7 +49,11 @@ class Config
 
         foreach ($configs as $cfg) $all[self::getDev($cfg)] = new self($cfg);
 
-        if ($activeOnly) $all = array_filter($all ?? [], fn ($c) => $c->get('active'));
+        $all = array_filter($all ?? [], fn (self $c) =>
+        Auth::client($c->name(), false));
+
+        if ($activeOnly) $all = array_filter($all ?? [], fn (self $c) =>
+        $c->get('active'));
 
         return $all ?? [];
     }
@@ -81,16 +85,7 @@ class Config
 
     public function get(?string $field = null, mixed $default = null): mixed
     {
-        $array = $this->data;
-        if (is_null($field)) return $array;
-        if (isset($array[$field])) return $array[$field];
-        foreach (explode('.', $field) as $segment) {
-            if (!is_array($array) || !array_key_exists($segment, $array)) {
-                return $default;
-            }
-            $array = $array[$segment];
-        }
-        return $array;
+        return Helper::getArrayKey($this->data, $field, $default);
     }
 
     public function set(string $field, mixed $value): void

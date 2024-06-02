@@ -6,7 +6,7 @@ if (isset($_GET['d'])) {
     exit((new Reverse($_GET, true))->request());
 } elseif (isset($_GET['format']) && $_GET['format'] === 'json') {
     header('Content-Type: application/json; charset=utf-8');
-    exit(Helper::getDataJson());
+    exit(Html::getClientsJson());
 } elseif (isset($_GET['cfg']) && isset($_GET['name'])) {
     exit((new Config($_GET['name']))->change($_GET['cfg']));
 }

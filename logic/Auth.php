@@ -42,19 +42,29 @@ class Auth
     public function authorized(?string $client = null): bool
     {
         $user = ($this->session['user'] ?? null);
-
-        $result = ($this->session['auth'] ?? false) === true &&
-            $this->cfg->get("$user.auth", false);
-
-        if (empty($client)) {
-            $result = $result &&
-                !$this->cfg->get("$user.client", false);
-        } else {
-            $result = $result &&
-                $this->cfg->get("$user.client", false) === $client;
-        }
+        $result = ($this->session['auth'] ?? false) === true
+            && $this->cfg->get("$user.auth", false)
+            && (empty($client)
+                ? !$this->cfg->get("$user.client", false)
+                : in_array($client, $this->cfg
+                    ->get("$user.client", false)));
 
         return $result;
+    }
+
+    public static function client(string $name, bool $admin): bool
+    {
+        if (php_sapi_name() == 'cli') return true;
+        $clients = self::get($admin ? 'cliAdm' : 'clients', []);
+
+        if ($clients === '*') return true;
+        elseif (is_array($clients)) return in_array($name, $clients);
+        else return false;
+    }
+
+    public static function get(?string $field = null, mixed $default = null): mixed
+    {
+        return Helper::getArrayKey($_SESSION, $field, $default);
     }
 
     private function autorize(array $params): void
@@ -71,6 +81,8 @@ class Auth
         $this->session['auth'] = $this->hash($u, $p) === $user['hash'] && $user['auth'] === true;
         if ($this->session['auth']) {
             $this->session['user'] = $u;
+            $this->session['clients'] = $this->cfg->get("$u.clients", []);
+            $this->session['cliAdm'] = $this->cfg->get("$u.cliAdm", []);
             $user['last_login'] = date_create()->format('c');
             $user['last_login_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
         }
