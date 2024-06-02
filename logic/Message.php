@@ -26,12 +26,10 @@ class Message
         echo $text . "\n";
 
         if (
-            empty($chatId)
-            || empty($this->cfg->get('id'))
-            || empty($this->cfg->get('key'))
-        ) return;
-
-        $this->tg($text, $cfg->get('tgChat'));
+            $cfg->get('tgChat', false)
+            && $this->cfg->get('id', false)
+            && $this->cfg->get('key', false)
+        ) $this->tg($text, $cfg->get('tgChat'));
     }
 
     private function tg(string $text, string $chatId): void
