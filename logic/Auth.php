@@ -28,9 +28,9 @@ class Auth
             : [$_POST['username'] ?? null, $_POST['password'] ?? null]);
 
         if (
-            $_SERVER['SCRIPT_NAME'] === self::LOGIN_FILE
+            $_SERVER['SCRIPT_NAME'] !== self::LOGIN_FILE
             && !$this->authorized($_GET['d'] ?? null)
-        ) exit(header('location: login.php'));
+        ) exit(header('location: ' . self::LOGIN_FILE));
     }
 
     public function authorized(?string $client = null): bool
