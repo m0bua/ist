@@ -2,9 +2,7 @@
 
 include '../bootstrap.php';
 
-if (!(new Auth)->cli()) {
-    exit(header('location: login.php'));
-} elseif (isset($_GET['d'])) {
+if (isset($_GET['d'])) {
     exit((new Reverse($_GET, true))->request());
 } elseif (isset($_GET['format']) && $_GET['format'] === 'json') {
     header('Content-Type: application/json; charset=utf-8');
@@ -84,9 +82,7 @@ if (!(new Auth)->cli()) {
                 let xmlhttp = new XMLHttpRequest();
                 xmlhttp.open("GET", "/?cfg=active&name=" + event.target.id, false);
                 xmlhttp.send();
-
-                if (xmlhttp.responseText === '1')
-                    window.location.href = window.location.href;
+                fill(false);
             }
         })
     }
@@ -108,7 +104,7 @@ if (!(new Auth)->cli()) {
                     newEl = exist ? el.children[key] : document.createElement(item.tag);
 
                 if (item.children != undefined) element(newEl, item.children, false);
-                if (!exist || (item.upd != undefined && item.upd === true)) {
+                if (!exist || (item.text != undefined && newEl.innerText != item.text)) {
                     if (item.text != undefined) newEl.innerText = item.text;
                     if (item.params != undefined)
                         for (const [key, val] of Object.entries(item.params)) {

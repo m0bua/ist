@@ -2,9 +2,6 @@
 
 include '../bootstrap.php';
 
-if ((new Auth)->login())
-    exit(header('location: /'));
-
 ?>
 
 <!DOCTYPE html>

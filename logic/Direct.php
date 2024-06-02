@@ -33,7 +33,7 @@ class Direct
         echo "### " . strtoupper($this->cfg->name()) . "\n";
         $this->test();
         if (
-            ($this->status || !Helper::changed($this->cfg))
+            ($this->status || Helper::changed($this->cfg))
             && ($this->cfg->get('current') !== $this->status)
         ) {
             $this->cfg->set('current', $this->status);

@@ -33,7 +33,7 @@ class Reverse
     public function check(): void
     {
         echo "### " . strtoupper($this->cfg->name()) . "\n";
-        if ($this->cfg->get('current') && !Helper::changed($this->cfg)) {
+        if ($this->cfg->get('current') && Helper::changed($this->cfg)) {
             $this->cfg->set('current', false);
             $this->cfg->set(0, date_create()->format('c'));
         }

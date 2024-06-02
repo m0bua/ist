@@ -20,13 +20,13 @@ class Helper
     public static function changed(Config $cfg): bool
     {
         $date = $cfg->get((int)$cfg->get('current'));
-        if (empty($date)) return false;
+        if (empty($date)) return true;
 
         $wait = empty($_GET['t'])
             ? $cfg->get('wait', self::DEFAULT_WAIT)
             : $_GET['t'] + 1;
 
-        return date_create("-$wait sec") < date_create($date);
+        return date_create("-$wait sec") > date_create($date);
     }
 
     public static function dateFormat(?string $date): string
@@ -59,6 +59,7 @@ class Helper
                 ['tag' => 'th', 'text' => 'Last change'],
                 ['tag' => 'th', 'text' => 'Last On'],
                 ['tag' => 'th', 'text' => 'Last Off'],
+                ['tag' => 'th', 'text' => 'Update'],
             ]]
         ], self::dataJsonRows($configs))]]);
     }
@@ -72,7 +73,6 @@ class Helper
 
         foreach ($configs as $dev => $cfg) {
             $status = $cfg->get('current');
-            $upd = self::changed($cfg);
             $children = [];
             foreach ($split[$dev] as $k => $name) {
                 $same = array_filter($split, function ($item) use ($split, $dev, $k) {
@@ -89,15 +89,15 @@ class Helper
                     ], 'text' => strtoupper($name)];
             }
             $row = ['tag' => 'tr', 'children' => array_merge($children, [
-                ['tag' => 'td', 'upd' => $upd, 'params' => [
+                ['tag' => 'td', 'params' => [
                     'style' => ['color' => $status ? 'green' : 'red']
                 ], 'text' => $status ? 'On' : 'Off'],
-                ['tag' => 'td', 'upd' => true, 'text' => self::after($cfg->get((int)$status))],
-                ['tag' => 'td', 'upd' => $upd, 'text' => self::dateFormat($cfg->get(1))],
-                ['tag' => 'td', 'upd' => $upd, 'text' => self::dateFormat($cfg->get(0))],
+                ['tag' => 'td', 'text' => self::after($cfg->get((int)$status))],
+                ['tag' => 'td', 'text' => self::dateFormat($cfg->get(1))],
+                ['tag' => 'td', 'text' => self::dateFormat($cfg->get(0))],
             ])];
 
-            $row['children'][] = ['tag' => 'td', 'upd' => $upd, 'children' => [[
+            $row['children'][] = ['tag' => 'td', 'children' => [[
                 'tag' => 'button', 'text' => $cfg->get('active') ? 'On' : 'Off',
                 'params' => [
                     'id' => $cfg->name(), 'class' => 'isActive',

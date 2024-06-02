@@ -2,11 +2,14 @@
 
 class Auth
 {
+    const LOGIN_FILE = '/login.php';
+
     private Config $cfg;
     private array $session = [];
 
     function __construct()
     {
+        if (php_sapi_name() == 'cli') return;
         session_start();
         $this->session = $_SESSION;
         $this->cfg = new Config('auth');
@@ -17,24 +20,23 @@ class Auth
         $_SESSION = $this->session;
     }
 
-    public function login(): bool
+    public function start(): void
     {
-        $this->autorize([
+        if (php_sapi_name() == 'cli') return;
+        $this->autorize(empty($_POST) ? [
+            $_GET['u'] ?? null,
+            $_GET['p'] ?? null,
+        ] : [
             $_POST['username'] ?? null,
             $_POST['password'] ?? null,
         ]);
 
-        return $this->authorized();
-    }
-
-    public function cli(): bool
-    {
-        $this->autorize([
-            $_GET['u'] ?? null,
-            $_GET['p'] ?? null,
-        ]);
-
-        return $this->authorized($_GET['d'] ?? null);
+        if ($_SERVER['SCRIPT_NAME'] === self::LOGIN_FILE) {
+            if ($this->authorized($_GET['d'] ?? null))
+                exit(header('location: /'));
+        } elseif (!$this->authorized($_GET['d'] ?? null)) {
+            exit(header('location: login.php'));
+        }
     }
 
     public function authorized(?string $client = null): bool
