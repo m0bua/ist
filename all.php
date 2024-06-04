@@ -2,6 +2,4 @@
 
 include 'bootstrap.php';
 
-
-foreach (Config::CFG_TYPES as $type)
-    ucfirst($type)::checkAll();
+Helper::popenAll(in_array(($argv[1] ?? null), ['p', 'parallel']));

@@ -63,4 +63,16 @@ class Helper
         }
         return $array;
     }
+
+    public static function popenAll($paralel = false, $mode = 'r')
+    {
+        foreach (Config::CFG_TYPES as $type)
+            if ($paralel) foreach (array_keys(Config::all($type, true)) as $dev)
+                $stdouts[] = popen("php $type.php $dev", $mode);
+            else ucfirst($type)::checkAll();
+
+        foreach ($stdouts ?? [] as $stdout)
+            while (!feof($stdout))
+                echo fgets($stdout);
+    }
 }
