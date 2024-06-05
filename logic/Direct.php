@@ -9,12 +9,12 @@ class Direct
     ];
     public const HELP = "Usage: php direct.php test\nParams:\n";
 
-    private Config $cfg;
-    private bool $status = false;
+    protected Dev $cfg;
+    protected bool $status = false;
 
     function __construct($argv)
     {
-        $this->cfg = new Config(...$argv);
+        $this->cfg = new Dev(...$argv);
         if (empty($this->cfg->get('server')))
             die("No server selected!\n");
     }
@@ -34,7 +34,7 @@ class Direct
         (new Message)->send($this->cfg);
     }
 
-    private function test(): void
+    protected function test(): void
     {
         $tries = $this->cfg->get('tries') ?? 5;
         $wait = $this->cfg->get('timeout') ?? 5;

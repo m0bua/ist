@@ -1,7 +1,7 @@
 <?php
 class Message
 {
-    private Config $cfg;
+    protected Config $cfg;
 
     function __construct()
     {
@@ -32,7 +32,7 @@ class Message
         ) $this->tg($text, $cfg->get('tgChat'));
     }
 
-    private function tg(string $text, string $chatId): void
+    protected function tg(string $text, string $chatId): void
     {
         file_get_contents('https://api.telegram.org/'
             . strtr('bot{id}:{key}/sendMessage?', [
@@ -44,7 +44,7 @@ class Message
             ]));
     }
 
-    private static function prepare(Config $cfg): string
+    protected static function prepare(Config $cfg): string
     {
         $msg = $cfg->get('msgPattern', '{status:🔴||🟢} {dev} status is '
             . '{status:off||on}{after: after #}{ip:, IP changed #&to #& => #}.');

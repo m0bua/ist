@@ -1,23 +1,12 @@
 <?php
 class Config
 {
-    private const DIR = 'cfg';
-    public const CFG_TYPES = [
-        'direct',
-        'reverse',
-    ];
-    private const PARAMS = [
-        'tgc' => 'tgChat',
-        'msg' => 'msgPattern',
-        'c' => 'current',
-        'w' => 'wait',
-        'reset',
-    ];
+    protected const DIR = 'cfg';
 
-    private string $class;
-    private string $name;
-    private array $data = [];
-    private array $origData = [];
+    protected string $class;
+    protected string $name;
+    protected array $data = [];
+    protected array $origData = [];
 
     function __construct(...$argv)
     {
@@ -32,7 +21,6 @@ class Config
 
         $this->data = $this->origData = is_file($this->file())
             ? json_decode(file_get_contents($this->file()), true) ?? [] : [];
-        if (in_array($this->type(), self::CFG_TYPES)) $this->argv($argv);
     }
 
     function __destruct()
@@ -47,34 +35,11 @@ class Config
             file_put_contents($this->file(), json_encode($this->data) . "\n");
     }
 
-    public static function all(?string $class = null, bool $activeOnly = false): array
-    {
-        $configs = array_map(fn ($i) => explode('.', $i), scandir(Helper::path(self::DIR)));
-        $configs = array_filter($configs, fn ($i) => count($i) === 2
-            && $i[1] === 'json' && self::getDev($i[0], $class));
-        $configs = array_map(fn ($i) => $i[0], $configs);
-
-        foreach ($configs as $cfg) $all[self::getDev($cfg)] = new self($cfg);
-
-        $all = array_filter($all ?? [], fn (self $c) =>
-        Auth::client($c->name(), false));
-
-        if ($activeOnly) $all = array_filter($all ?? [], fn (self $c) =>
-        $c->get('active'));
-
-        return $all ?? [];
-    }
-
     public function change(string $field, mixed $val = null): bool
     {
-        if (
-            is_bool($this->get($field))
-            || $field === 'active'
-        ) {
+        if (is_bool($this->get($field)) || $field === 'active')
             $this->set($field, !$this->get($field));
-        } else {
-            $this->set($field, $val);
-        }
+        else $this->set($field, $val);
 
         return true;
     }
@@ -121,51 +86,13 @@ class Config
         return $name;
     }
 
-    private static function getDev(string $cfg, ?string $class = null): ?string
-    {
-        $result = $cfg;
-        if (empty($class)) foreach (self::CFG_TYPES as $type)
-            $result = str_replace($type . '_', '', $result);
-        else
-            $result = str_replace(strtolower($class) . '_', '', $result);
-
-        return $cfg === $result ? null : $result;
-    }
-
-    private function file()
+    protected function file()
     {
         return Helper::path([self::DIR, $this->name() . '.json']);
     }
 
-    private function type()
+    protected function type()
     {
         return strtolower($this->class);
-    }
-
-    private function argv(array $argv): self
-    {
-        $fields = array_merge(self::PARAMS, $this->class::PARAMS ?? []);
-        $help = $this->class::HELP ?? "Params:\n";
-
-        $cfg = [];
-
-        $params = array_slice($argv, 2);
-        $params = array_values($params) === $params
-            ? implode('&', $params) : http_build_query($params);
-
-        parse_str($params, $params);
-
-        foreach ($fields ?? [] as $short => $param) {
-            if (isset($params[$short])) $cfg[$param] = $params[$short];
-            if (isset($params[$param])) $cfg[$param] = $params[$param];
-            if (is_string($short)) $param .= '|' . $short;
-            $help .= $param . "\n";
-        }
-
-        if (empty($this->class) || !isset($this->name)) die($help);
-
-        foreach ($cfg as $key => $item) $this->set($key, $item);
-
-        return $this;
     }
 }

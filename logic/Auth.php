@@ -4,8 +4,8 @@ class Auth
 {
     const LOGIN_FILE = '/login.php';
 
-    private Config $cfg;
-    private array $session = [];
+    protected Config $cfg;
+    protected array $session = [];
 
     function __construct()
     {
@@ -61,7 +61,7 @@ class Auth
         return Helper::getArrayKey($_SESSION, $field, $default);
     }
 
-    private function autorize(array $params): void
+    protected function autorize(array $params): void
     {
         [$u, $p] = $params;
         if (empty($u)) return;
@@ -85,7 +85,7 @@ class Auth
         if ($this->session['auth']) exit(header('location: /'));
     }
 
-    private function hash(string $usr, string $pwd): string
+    protected function hash(string $usr, string $pwd): string
     {
         return sha1(implode('-', [
             $usr, $pwd,

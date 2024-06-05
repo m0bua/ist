@@ -1,8 +1,8 @@
 <?php
 class Helper
 {
-    private const DEFAULT_WAIT = '180';
-    private static ?DateTimeZone $tz = null;
+    protected const DEFAULT_WAIT = '180';
+    protected static ?DateTimeZone $tz = null;
 
     public static function after(?string $date, bool $withPref = false): string
     {
@@ -66,10 +66,10 @@ class Helper
 
     public static function popenAll($paralel = false, $mode = 'r')
     {
-        foreach (Config::CFG_TYPES as $type) {
+        foreach (Dev::CFG_TYPES as $type) {
             $cmd = self::path("$type.php");
             $class = ucfirst($type);
-            foreach (array_keys(Config::all($type, true)) as $dev) {
+            foreach (array_keys(Dev::all($type, true)) as $dev) {
                 if ($paralel) $stdouts[] = popen("php $cmd $dev", $mode);
                 else (new $class([$type, $dev]))->check();
             }

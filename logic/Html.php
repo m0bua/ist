@@ -25,7 +25,7 @@ class Html
         ], self::dataJsonRows($configs))]]);
     }
 
-    private static function dataJsonRows(array $configs): array
+    protected static function dataJsonRows(array $configs): array
     {
         $split = array_map(
             fn ($i) => explode('_', $i),

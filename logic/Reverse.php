@@ -8,7 +8,7 @@ class Reverse
     ];
     public const HELP = "Usage: php check.php test\nParams:\n";
 
-    private Config $cfg;
+    protected Dev $cfg;
 
     function __construct(array $params, bool $remote = false)
     {
@@ -18,7 +18,7 @@ class Reverse
                 $args[$item] = $params[$key] ?? $params[$item] ?? null;
         }
 
-        $this->cfg = new Config(...($args ?? $params));
+        $this->cfg = new Dev(...($args ?? $params));
     }
 
     public function check(): void
