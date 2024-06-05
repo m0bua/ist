@@ -1,14 +1,14 @@
 <?php
-class Message
+class Msg
 {
-    protected Config $cfg;
+    protected Dev $cfg;
 
     function __construct()
     {
-        $this->cfg = new Config('tg');
+        $this->cfg = new Dev('tg');
     }
 
-    public function send(Config $cfg): void
+    public function send(Dev $cfg): void
     {
         if ($cfg->changed('current'))
             $text[] = self::prepare($cfg);
@@ -44,7 +44,7 @@ class Message
             ]));
     }
 
-    protected static function prepare(Config $cfg): string
+    protected static function prepare(Dev $cfg): string
     {
         $msg = $cfg->get('msgPattern', '{status:🔴||🟢} {dev} status is '
             . '{status:off||on}{after: after #}{ip:, IP changed #&to #& => #}.');

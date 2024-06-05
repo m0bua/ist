@@ -8,7 +8,7 @@ if (isset($_GET['d'])) {
     header('Content-Type: application/json; charset=utf-8');
     exit(Html::getClientsJson());
 } elseif (isset($_GET['cfg']) && isset($_GET['name'])) {
-    exit((new Config($_GET['name']))->change($_GET['cfg']));
+    exit((new Dev($_GET['name']))->change($_GET['cfg']));
 }
 ?>
 <!DOCTYPE html>

@@ -1,5 +1,5 @@
 <?php
-class Config
+class Cfg
 {
     protected const DIR = 'cfg';
 

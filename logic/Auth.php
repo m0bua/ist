@@ -4,7 +4,7 @@ class Auth
 {
     const LOGIN_FILE = '/login.php';
 
-    protected Config $cfg;
+    protected Cfg $cfg;
     protected array $session = [];
 
     function __construct()
@@ -12,7 +12,7 @@ class Auth
         if (php_sapi_name() == 'cli') return;
         session_start(['cookie_lifetime' => 30 * 24 * 60 * 60]);
         $this->session = $_SESSION;
-        $this->cfg = new Config('auth');
+        $this->cfg = new Cfg('auth');
     }
 
     function __destruct()

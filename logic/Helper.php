@@ -17,7 +17,7 @@ class Helper
         return $result;
     }
 
-    public static function changed(Config $cfg): bool
+    public static function changed(Cfg $cfg): bool
     {
         $date = $cfg->get((int)$cfg->get('current'));
         if (empty($date)) return true;

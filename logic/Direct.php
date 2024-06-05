@@ -31,7 +31,7 @@ class Direct
             $this->cfg->set((int)$this->status, date_create()->format('c'));
         }
 
-        (new Message)->send($this->cfg);
+        (new Msg)->send($this->cfg);
     }
 
     protected function test(): void

@@ -1,6 +1,6 @@
 <?php
 
-class Dev extends Config
+class Dev extends Cfg
 {
     public const CFG_TYPES = [
         'direct',

@@ -29,7 +29,7 @@ class Reverse
             $this->cfg->set(0, date_create()->format('c'));
         }
 
-        (new Message)->send($this->cfg);
+        (new Msg)->send($this->cfg);
     }
 
     public function request(): void
@@ -40,7 +40,7 @@ class Reverse
             $this->cfg->set('ip', $_SERVER['REMOTE_ADDR'] ?? '');
         }
 
-        (new Message)->send($this->cfg);
+        (new Msg)->send($this->cfg);
         $this->cfg->unset('message');
     }
 }
