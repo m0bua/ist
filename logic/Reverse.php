@@ -21,15 +21,6 @@ class Reverse
         $this->cfg = new Config(...($args ?? $params));
     }
 
-    public static function checkAll(array $argv = []): void
-    {
-        if (empty($argv[1])) {
-            foreach (array_keys(Config::all(self::class, true)) as $dev) {
-                (new self([self::class, $dev]))->check();
-            }
-        } else (new self($argv))->check();
-    }
-
     public function check(): void
     {
         echo "### " . strtoupper($this->cfg->name()) . "\n";

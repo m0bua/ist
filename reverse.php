@@ -2,4 +2,4 @@
 
 include 'bootstrap.php';
 
-exit(Reverse::checkAll($argv));
+exit((new Reverse($argv))->check());

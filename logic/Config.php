@@ -1,6 +1,7 @@
 <?php
 class Config
 {
+    private const DIR = 'cfg';
     public const CFG_TYPES = [
         'direct',
         'reverse',
@@ -14,15 +15,21 @@ class Config
     ];
 
     private string $class;
-    private ?string $name = null;
+    private string $name;
     private array $data = [];
     private array $origData = [];
 
     function __construct(...$argv)
     {
-        [$file] = explode('.', $argv[0]);
+        $first = $argv[0] ?? '';
+        $file = pathinfo($first, PATHINFO_FILENAME);
+        if (pathinfo($first, PATHINFO_BASENAME) === $file) {
+            [$file] = explode('_', $file);
+            $this->name = trim(str_replace($file, '', $first), '_');
+        }
         $this->class = ucfirst($file);
         if (!empty($argv[1])) $this->name = $argv[1];
+
         $this->data = $this->origData = is_file($this->file())
             ? json_decode(file_get_contents($this->file()), true) ?? [] : [];
         if (in_array($this->type(), self::CFG_TYPES)) $this->argv($argv);
@@ -42,7 +49,7 @@ class Config
 
     public static function all(?string $class = null, bool $activeOnly = false): array
     {
-        $configs = array_map(fn ($i) => explode('.', $i), scandir(ROOT . '/cfg/'));
+        $configs = array_map(fn ($i) => explode('.', $i), scandir(Helper::path(self::DIR)));
         $configs = array_filter($configs, fn ($i) => count($i) === 2
             && $i[1] === 'json' && self::getDev($i[0], $class));
         $configs = array_map(fn ($i) => $i[0], $configs);
@@ -127,7 +134,7 @@ class Config
 
     private function file()
     {
-        return ROOT . '/cfg/' . $this->name() . '.json';
+        return Helper::path([self::DIR, $this->name() . '.json']);
     }
 
     private function type()
@@ -155,8 +162,7 @@ class Config
             $help .= $param . "\n";
         }
 
-
-        if (count($argv) < 2) die($help);
+        if (empty($this->class) || !isset($this->name)) die($help);
 
         foreach ($cfg as $key => $item) $this->set($key, $item);
 

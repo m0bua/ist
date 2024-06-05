@@ -66,13 +66,23 @@ class Helper
 
     public static function popenAll($paralel = false, $mode = 'r')
     {
-        foreach (Config::CFG_TYPES as $type)
-            if ($paralel) foreach (array_keys(Config::all($type, true)) as $dev)
-                $stdouts[] = popen("php $type.php $dev", $mode);
-            else ucfirst($type)::checkAll();
+        foreach (Config::CFG_TYPES as $type) {
+            $cmd = self::path("$type.php");
+            $class = ucfirst($type);
+            foreach (array_keys(Config::all($type, true)) as $dev) {
+                if ($paralel) $stdouts[] = popen("php $cmd $dev", $mode);
+                else (new $class([$type, $dev]))->check();
+            }
+        }
 
         foreach ($stdouts ?? [] as $stdout)
-            while (!feof($stdout))
-                echo fgets($stdout);
+            while (!feof($stdout)) echo fgets($stdout);
+    }
+
+    public static function path(mixed $path): string
+    {
+        if (is_string($path)) $path = [$path];
+
+        return implode(DIRECTORY_SEPARATOR, array_merge([ROOT], $path));
     }
 }

@@ -2,4 +2,4 @@
 
 include 'bootstrap.php';
 
-exit(Direct::checkAll($argv));
+exit((new Direct($argv))->check());
