@@ -36,25 +36,43 @@ class Direct
 
     protected function test(): void
     {
-        $tries = $this->cfg->get('tries') ?? 5;
-        $wait = $this->cfg->get('timeout') ?? 5;
         $server = $this->cfg->get('server');
-        $port = 443;
         if (strpos($server, ':')) [$server, $port] = explode(':', $server);
 
-        for ($i = 1; $i <= $tries; $i++) {
-            if (!$this->status) {
-                set_error_handler(function () use ($server, $port, $wait) {
-                    echo "No connection to $server:$port, waiting $wait sec.\n";
-                });
-                $result = !!fSockOpen($server, $port, $_, $_, $wait);
-                restore_error_handler();
-            } else $result = true;
+        if (empty($port)) $this->ping($server);
+        else $this->fSockOpen($server, $port);
+    }
 
-            if ($this->status !== $result) {
+    protected function ping(string $server)
+    {
+        $tries = (int)$this->cfg->get('tries', 5);
+        $wait = (int)$this->cfg->get('timeout', 5);
+        $cmd = "ping $server -c$tries -W$wait -A";
+        $output = shell_exec($cmd);
+        $exp = explode("\n", $output);
+        $result = $exp[count($exp) - 3];
+        [$recived] = explode(' ', explode(', ', $result)[1]);
+
+        $this->status = $recived > 0;
+        echo "$output";
+    }
+
+    protected function fSockOpen(string $server, int $port)
+    {
+        $tries = (int)$this->cfg->get('tries', 5);
+        $wait = (int)$this->cfg->get('timeout', 5);
+
+        for ($i = 0; $i < $tries; $i++) {
+            if ($this->status) break;
+
+            set_error_handler(function () use ($server, $port, $wait) {
+                echo "No connection to $server:$port, waiting $wait sec.\n";
+            });
+            if (!!fSockOpen($server, $port, $_, $_, $wait)) {
                 echo "Connected to $server:$port!\n";
-                $this->status = $result;
+                $this->status = true;
             }
+            restore_error_handler();
         }
     }
 }
