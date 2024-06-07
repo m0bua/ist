@@ -31,8 +31,10 @@ class Cfg
                 $this->origData[$field] !== ($this->data[$field] ?? null)
             ) $this->data[$field] = $this->origData[$field];
             else unset($this->data[$field]);
-        if ($this->data !== $this->origData)
+        if ($this->data !== $this->origData) {
+            self::sort($this->data);
             file_put_contents($this->file(), json_encode($this->data) . "\n");
+        }
     }
 
     public function change(string $field, mixed $val = null): bool
@@ -94,5 +96,12 @@ class Cfg
     protected function type()
     {
         return strtolower($this->class);
+    }
+
+    protected static function sort(array &$data): void
+    {
+        ksort($data, SORT_STRING);
+        foreach ($data as $item)
+            if (is_array($item)) self::sort($item);
     }
 }

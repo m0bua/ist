@@ -4,8 +4,10 @@ class Html
 {
     public static function getClientsJson(): string
     {
-        $configs = Dev::all();
+        foreach (Dev::all() as $key => $item)
+            $configs[$item->key($key)] = $item;
         if (empty($configs)) return json_encode([]);
+        ksort($configs);
 
         $maxKeys = max(array_map(fn ($i) => count(explode('_', $i)), array_keys($configs)));
 

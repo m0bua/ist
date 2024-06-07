@@ -22,20 +22,44 @@ class Dev extends Cfg
 
     public static function all(?string $class = null, bool $activeOnly = false): array
     {
-        $configs = array_map(fn ($i) => explode('.', $i), scandir(Helper::path(self::DIR)));
-        $configs = array_filter($configs, fn ($i) => count($i) === 2
+        foreach (self::list($class) as $item)
+            $cfgs[$item] = new self($item);
+        if (empty($cfgs)) return [];
+
+        $cfgs = array_filter($cfgs, fn (self $c) => Auth::client($c->name(), false));
+        if ($activeOnly) $cfgs = array_filter($cfgs, fn (self $c) => $c->get('active'));
+
+        return $cfgs;
+    }
+
+    public static function list(?string $class = null)
+    {
+        $list = array_map(fn ($i) => explode('.', $i), scandir(Helper::path(self::DIR)));
+        $list = array_filter($list, fn ($i) => count($i) === 2
             && $i[1] === 'json' && self::getDev($i[0], $class));
-        $configs = array_map(fn ($i) => $i[0], $configs);
+        $list = array_map(fn ($i) => $i[0], $list);
 
-        foreach ($configs as $cfg) $all[self::getDev($cfg)] = new self($cfg);
+        return $list;
+    }
 
-        $all = array_filter($all ?? [], fn (self $c) =>
-        Auth::client($c->name(), false));
+    public static function runAll($paralel = false, $mode = 'r')
+    {
+        foreach (self::CFG_TYPES as $type) {
+            $cmd = Helper::path("$type.php");
+            $class = ucfirst($type);
+            foreach (array_keys(self::all($type, true)) as $dev) {
+                if ($paralel) $stdouts[] = popen("php $cmd $dev", $mode);
+                else (new $class([$dev]))->check();
+            }
+        }
 
-        if ($activeOnly) $all = array_filter($all ?? [], fn (self $c) =>
-        $c->get('active'));
+        foreach ($stdouts ?? [] as $stdout)
+            while (!feof($stdout)) echo fgets($stdout);
+    }
 
-        return $all ?? [];
+    public function key(string $key)
+    {
+        return $this->get('name', self::getDev($key));
     }
 
     protected static function getDev(string $cfg, ?string $class = null): ?string

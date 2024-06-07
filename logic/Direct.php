@@ -14,6 +14,8 @@ class Direct
 
     function __construct($argv)
     {
+        if (isset($argv[1]))
+            $argv[1] = str_replace(strtolower(self::class) . '_', '', $argv[1]);
         $this->cfg = new Dev(...$argv);
         if (empty($this->cfg->get('server')))
             die("No server selected!\n");

@@ -12,13 +12,17 @@ class Reverse
 
     function __construct(array $params, bool $remote = false)
     {
+        if (isset($params[1]))
+            $params[1] = str_replace(strtolower(self::class) . '_', '', $params[1]);
         if ($remote) {
             $args = [self::class, $params['d']];
             foreach (self::PARAMS as $key => $item)
                 $args[$item] = $params[$key] ?? $params[$item] ?? null;
+
+            $params = $args;
         }
 
-        $this->cfg = new Dev(...($args ?? $params));
+        $this->cfg = new Dev(...$params);
     }
 
     public function check(): void

@@ -64,21 +64,6 @@ class Helper
         return $array;
     }
 
-    public static function popenAll($paralel = false, $mode = 'r')
-    {
-        foreach (Dev::CFG_TYPES as $type) {
-            $cmd = self::path("$type.php");
-            $class = ucfirst($type);
-            foreach (array_keys(Dev::all($type, true)) as $dev) {
-                if ($paralel) $stdouts[] = popen("php $cmd $dev", $mode);
-                else (new $class([$type, $dev]))->check();
-            }
-        }
-
-        foreach ($stdouts ?? [] as $stdout)
-            while (!feof($stdout)) echo fgets($stdout);
-    }
-
     public static function path(mixed $path): string
     {
         if (is_string($path)) $path = [$path];
