@@ -31,24 +31,34 @@ class Html
             fn ($i) => explode('_', $i),
             array_combine(array_keys($configs), array_keys($configs))
         );
+        $max = max(array_map(fn ($i) => count($i), $split));
 
         foreach ($configs as $dev => $cfg) {
             $status = $cfg->get('current');
             $children = [];
             foreach ($split[$dev] as $k => $name) {
                 $same = array_filter($split, function ($item) use ($split, $dev, $k) {
-                    for ($i = 0; $i <= $k; $i++) $result = ($result ?? true)
-                        && ($item[$i] === $split[$dev][$i]);
-                    return $result ?? false;
+                    for ($i = 0; $i <= $k; $i++) $res = ($res ?? true)
+                        && (($item[$i] ?? '') === $split[$dev][$i]);
+                    return $res ?? false;
                 });
+                $blockMax = max(array_map(fn ($i) => count($i), $same));
+
                 if (array_search($dev, array_keys($same)) === 0)
                     $children[] = ['tag' => 'td', 'params' => [
                         'rowspan' => count($same),
-                        'colspan' => $k === array_key_last($split[$dev])
-                            ? max(array_map(fn ($i) => count($i), $split))
-                            - count($split[$dev]) + 1 : 1,
+                        'colspan' => count($split[$dev]) === $blockMax
+                            && $k === array_key_last($split[$dev])
+                            ? $max + 1 - count($split[$dev]) : 1,
                     ], 'text' => strtoupper($name)];
             }
+
+            if (count($split[$dev]) < $blockMax)
+                $children[] = ['tag' => 'td', 'params' => [
+                    'rowspan' => 1, 'colspan' => $max - count($split[$dev]),
+                ], 'text' => null];
+
+
             $row = ['tag' => 'tr', 'children' => array_merge($children, [
                 ['tag' => 'td', 'params' => [
                     'style' => ['color' => $status ? 'green' : 'red']
