@@ -4,17 +4,11 @@ class Helper
     protected const DEFAULT_WAIT = '180';
     protected static ?DateTimeZone $tz = null;
 
-    public static function after(?string $date, bool $withPref = false): string
+    public static function after(string $date, ?string $format = null): string
     {
-        $result = '';
-        if (!empty($date)) {
-            $result = date_create($date)
-                ->diff(date_create())
-                ->format('%r%ad %H:%I:%S');
-            if ($withPref) $result = ' after ' . $result;
-        }
-
-        return $result;
+        return empty($date) ? '' : date_create($date)
+            ->diff(date_create())
+            ->format($format ?? '%r%ad %H:%I:%S');
     }
 
     public static function changed(Cfg $cfg): bool
@@ -29,14 +23,14 @@ class Helper
         return date_create("-$wait sec") > date_create($date);
     }
 
-    public static function dateFormat(?string $date): string
+    public static function dateFormat(?string $date, ?string $format = null): string
     {
         if (empty($date)) return '';
 
         $date = date_create($date);
         if (!empty(self::tz())) $date->setTimezone(self::tz());
 
-        return $date->format('Y.m.d H:i');
+        return $date->format($format ?? 'Y.m.d H:i');
     }
 
     public static function tz(): ?DateTimeZone

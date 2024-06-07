@@ -65,9 +65,9 @@ class Html
                 ['tag' => 'td', 'params' => [
                     'style' => ['color' => $status ? 'green' : 'red']
                 ], 'text' => $status ? 'On' : 'Off'],
-                ['tag' => 'td', 'text' => Helper::after($cfg->get((int)$status))],
-                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get(1))],
-                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get(0))],
+                ['tag' => 'td', 'text' => Helper::after($cfg->get((int)$status), $cfg->get('dateDiffFormat'))],
+                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get(1), $cfg->get('dateFormat'))],
+                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get(0), $cfg->get('dateFormat'))],
             ])];
 
             if (Auth::client($cfg->name(), true))
