@@ -40,8 +40,7 @@ class Auth
             && $this->cfg->get("$user.auth", false)
             && (empty($client)
                 ? !$this->cfg->get("$user.client", false)
-                : in_array($client, $this->cfg
-                    ->get("$user.client", false)));
+                : $client = $this->cfg->get("$user.client"));
 
         return $result;
     }
@@ -82,7 +81,7 @@ class Auth
         }
         $user['last_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
         $this->cfg->set($u, $user);
-        if ($this->session['auth']) exit(header('location: /'));
+        if ($this->session['auth'] && empty($_GET)) exit(header('location: /'));
     }
 
     protected function hash(string $usr, string $pwd): string
