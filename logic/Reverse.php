@@ -28,7 +28,7 @@ class Reverse
     public function check(): void
     {
         echo "### " . strtoupper($this->cfg->name()) . "\n";
-        if ($this->cfg->get('current') && Helper::changed($this->cfg)) {
+        if ($this->cfg->get('current') && Helper::changed($this->cfg, 'lastRequest')) {
             $this->cfg->set('current', false);
             $this->cfg->set(0, date_create()->format('c'));
         }
@@ -38,10 +38,12 @@ class Reverse
 
     public function request(): void
     {
-        $this->cfg->set(1, date_create()->format('c'));
+        $this->cfg->set('lastRequest', date_create()->format('c'));
         $this->cfg->set('ip', Helper::ip());
-        if (!$this->cfg->get('current'))
+        if (!$this->cfg->get('current')) {
             $this->cfg->set('current', true);
+            $this->cfg->set(1, date_create()->format('c'));
+        }
 
         (new Msg)->send($this->cfg);
         $this->cfg->unset('message');

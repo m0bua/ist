@@ -11,9 +11,9 @@ class Helper
             ->format($format ?? '%r%ad %H:%I:%S');
     }
 
-    public static function changed(Cfg $cfg): bool
+    public static function changed(Cfg $cfg, ?string $field = null): bool
     {
-        $date = $cfg->get((int)$cfg->get('current'));
+        $date = $cfg->get($field ?? (int)$cfg->get('current'));
         if (empty($date)) return true;
 
         $wait = empty($_GET['t'])
