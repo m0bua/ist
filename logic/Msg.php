@@ -31,7 +31,7 @@ class Msg
             $text[] = self::prepare($cfg, 'text');
         }
 
-        $text = array_filter($text);
+        $text = array_filter($text ?? []);
         if (empty($text)) {
             echo "Nothing changed.\n";
             return;
