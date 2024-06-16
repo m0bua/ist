@@ -1,7 +1,7 @@
 <?php
 class Helper
 {
-    protected const DEFAULT_WAIT = '180';
+    protected const DEFAULT_WAIT = '300';
     protected static ?DateTimeZone $tz = null;
 
     public static function after(string $date, ?string $format = null): string
