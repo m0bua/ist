@@ -80,6 +80,10 @@ class Cfg
         return !($orig === $new);
     }
 
+    public function dev()
+    {
+        return $this->get('name', $this->name ?? '');
+    }
     public function name()
     {
         $name = $this->type();

@@ -38,11 +38,10 @@ class Reverse
 
     public function request(): void
     {
-        if (!$this->cfg->get('current')) {
+        $this->cfg->set(1, date_create()->format('c'));
+        $this->cfg->set('ip', Helper::ip());
+        if (!$this->cfg->get('current'))
             $this->cfg->set('current', true);
-            $this->cfg->set(1, date_create()->format('c'));
-            $this->cfg->set('ip', $_SERVER['REMOTE_ADDR'] ?? '');
-        }
 
         (new Msg)->send($this->cfg);
         $this->cfg->unset('message');

@@ -64,4 +64,12 @@ class Helper
 
         return implode(DIRECTORY_SEPARATOR, array_merge([ROOT], $path));
     }
+
+    public static function ip()
+    {
+        return $_SERVER['HTTP_CF_CONNECTING_IP']
+            ?? $_SERVER['HTTP_X_FORWARDED_FOR']
+            ?? $_SERVER['REMOTE_ADDR']
+            ?? '';
+    }
 }
