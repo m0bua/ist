@@ -43,19 +43,19 @@ class Msg
         if (
             $cfg->get('active', false)
             && $cfg->get('tgChat', false)
-            && $this->cfg->get('id', false)
-            && $this->cfg->get('key', false)
-        ) $this->tg($text, $cfg->get('tgChat'));
+            && $cfg->get('tgId', $this->cfg->get('id', false))
+            && $cfg->get('tgKey', $this->cfg->get('key', false))
+        ) $this->tg($text, $cfg);
     }
 
-    protected function tg(string $text, string $chatId): void
+    protected function tg(string $text, Dev $cfg): void
     {
         file_get_contents('https://api.telegram.org/'
             . strtr('bot{id}:{key}/sendMessage?', [
-                '{id}' => $this->cfg->get('id'),
-                '{key}' => $this->cfg->get('key'),
+                '{id}' => $cfg->get('tgId', $this->cfg->get('id', false)),
+                '{key}' => $cfg->get('tgKey', $this->cfg->get('key', false)),
             ]) . http_build_query([
-                'chat_id' => $chatId,
+                'chat_id' => $cfg->get('tgChat', false),
                 'text' => $text,
             ]));
     }
