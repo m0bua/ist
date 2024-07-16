@@ -2,13 +2,22 @@
 class Helper
 {
     protected const DEFAULT_WAIT = '300';
-    protected static ?DateTimeZone $tz = null;
+    protected static DateTimeZone $tz;
 
     public static function after(string $date, ?string $format = null): string
     {
-        return empty($date) ? '' : date_create($date)
+        if (empty($date)) return '';
+        $diff = date_create($date)->diff(date_create());
+        $strtr['{th}'] = $diff->days * 24 + $diff->h;
+        $strtr['{tm}'] = $strtr['{th}'] * 60 + $diff->m;
+        $strtr['{ts}'] = $strtr['{tm}'] * 60 + $diff->s;
+        $format = empty($format)
+            ? '%ad %H:%I:%S'
+            :  strtr($format, $strtr);
+
+        return date_create($date)
             ->diff(date_create())
-            ->format($format ?? '%r%ad %H:%I:%S');
+            ->format($format);
     }
 
     public static function changed(Cfg $cfg, ?string $field = null): bool
@@ -39,7 +48,7 @@ class Helper
         if (isset($_GET['tz']) && in_array($_GET['tz'], $tzList))
             self::$tz = new DateTimeZone($_GET['tz']);
 
-        return self::$tz;
+        return self::$tz ?? null;
     }
 
     public static function getArrayKey(
