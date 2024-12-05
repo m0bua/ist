@@ -5,6 +5,7 @@ class Auth
     const LOGIN_FILE = '/login.php';
 
     protected Cfg $cfg;
+    protected array $origKeys;
     protected array $session = [];
 
     function __construct()
@@ -13,11 +14,14 @@ class Auth
         session_start(['cookie_lifetime' => 30 * 24 * 60 * 60]);
         $this->session = $_SESSION;
         $this->cfg = new Cfg('auth');
+        $this->origKeys = array_keys($this->cfg->getData());
     }
 
     function __destruct()
     {
         $_SESSION = $this->session;
+        foreach ($this->origKeys as $key)
+            if (empty($this->cfg->get($key))) die;
     }
 
     public function start(): void
@@ -86,9 +90,7 @@ class Auth
 
     protected function hash(string $usr, string $pwd): string
     {
-        return sha1(implode('-', [
-            $usr, $pwd,
-            $this->cfg->get("$usr.created", date_create()->format('c')),
-        ]));
+        return sha1(implode('-', [$usr, $pwd, $this->cfg
+            ->get("$usr.created", date_create()->format('c'))]));
     }
 }
