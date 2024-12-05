@@ -5,7 +5,7 @@ class Auth
     const LOGIN_FILE = '/login.php';
 
     protected Cfg $cfg;
-    protected array $origKeys;
+    protected array $origKeys = [];
     protected array $session = [];
 
     function __construct()
