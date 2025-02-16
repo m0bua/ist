@@ -88,4 +88,22 @@ class Helper
     {
         return date_create($datetime)->format('Y-m-d H:i:s');
     }
+
+    public static function phpExec(string $cmd = '', string $params = ''): string
+    {
+        $ds = DIRECTORY_SEPARATOR;
+        $ver = implode('.', array_slice(explode('.', phpversion()), 0, 2));
+        $path = explode(':', $_SERVER['PATH']);
+        $path = array_filter(array_merge(
+            array_map(fn($i) => "$i/php$ver", $path),
+            array_map(fn($i) => "$i/php", $path),
+        ), fn($i) => is_file($i));
+
+        $path = array_shift($path);
+        if (!empty($cmd)) $path .= ' ' . implode($ds, [ROOT, $cmd]);
+
+        if (!empty($params)) $path .= " $params";
+
+        return $path;
+    }
 }

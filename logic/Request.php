@@ -10,7 +10,7 @@ class Request implements Point
 
     public function check(array $data = []): void
     {
-        echo "### " . $this->cfg->dev() . "\n";
+        echo "### " . $this->cfg->name() . "\n";
         $this->test();
         if (
             ($this->status || Helper::changed($this->cfg))

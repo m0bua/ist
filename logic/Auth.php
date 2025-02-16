@@ -8,7 +8,8 @@ class Auth
     use Storage;
 
     private const TABLE = 'auth';
-    private const LOGIN_path = '/login.php';
+    private const LOGIN_PATH = '/login.php';
+    private static string $user;
 
     function __construct()
     {
@@ -24,9 +25,9 @@ class Auth
         );
 
         if (
-            $_SERVER['SCRIPT_NAME'] !== self::LOGIN_path
-            && !$this->authorized($_GET['d'] ?? null)
-        ) exit(header('location: ' . self::LOGIN_path));
+            $_SERVER['SCRIPT_NAME'] !== self::LOGIN_PATH
+            && !$this->authorized($_GET['d'] ?? self::$user ?? null)
+        ) exit(header('location: ' . self::LOGIN_PATH));
     }
 
     public static function id(): ?string
@@ -45,11 +46,14 @@ class Auth
     {
         $sql = "SELECT points.name FROM user_points
             INNER JOIN auth ON auth.id = user_points.user_id
-            INNER JOIN points ON points.id = user_points.point_id
-            WHERE auth.id='{$_SESSION['id']}'";
-        if ($admin) $sql .= " AND user_points.admin=1";
+            INNER JOIN points ON points.id = user_points.point_id";
+        if (!empty($_SESSION['id'])) $where[] = "auth.id='{$_SESSION['id']}'";
+        elseif (isset(self::$user)) $where[] = "auth.login='" . self::$user . "'";
+        else return [];
+        if ($admin) $where[] = "user_points.admin=1";
+        if (!empty($where)) $sql .= ' WHERE ' . implode(' AND ', $where);
 
-        $result = array_map(fn($i) => $i['name'], DB::start()->all($sql));
+        $result = array_map(fn($i) => $i['name'], DB::start()->all($sql) ?? []);
 
         return $result;
     }
@@ -57,8 +61,9 @@ class Auth
     private function autorize(string $user, string $pass): void
     {
         if (empty($user) || empty($pass)) return;
+        self::$user = $user;
         $model = DB::start()->one("SELECT * FROM auth WHERE login='$user'");
-        if (!$model) {
+        if (empty($model['hash'])) {
             $created = Helper::date();
             $model = [
                 'login' => $user,
@@ -78,10 +83,8 @@ class Auth
             $this->data['last_login_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
         }
         $this->data['last_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
-        if (isset($_SESSION['id']) && empty($_GET)) {
-            header('location: /');
-            exit();
-        }
+        if (isset($_SESSION['id']) && empty($_GET))
+            exit(header('location: /'));
     }
 
     private function hash(string $usr, string $pwd, string $created): string
@@ -91,12 +94,14 @@ class Auth
 
     private function authorized(?string $client = null): bool
     {
-        if (empty($_SESSION['id'])) return false;
-        $user = DB::start()->one("SELECT * FROM auth
-            WHERE id='{$_SESSION['id']}' AND auth=1");
-        if (empty($user)) {
-            unset($_SESSION['id']);
-            return false;
+        if (empty($client)) {
+            if (empty($_SESSION['id'])) return false;
+            $sql = "SELECT * FROM auth WHERE id='{$_SESSION['id']}' AND auth=1";
+            $user = DB::start()->one($sql);
+            if (empty($user)) {
+                unset($_SESSION['id']);
+                return false;
+            }
         }
 
         return empty($client) ? true : in_array($client, self::clients(false));

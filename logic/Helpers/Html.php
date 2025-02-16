@@ -9,7 +9,7 @@ class Html
     public static function getClientsJson(): string
     {
         foreach (Dev::all() as $item)
-            $configs[$item->dev()] = $item;
+            $configs[$item->name()] = $item;
 
         if (empty($configs))
             return json_encode([]);

@@ -27,7 +27,9 @@ abstract class Cfg
         if ($this->get(2, false)) {
             $model = DB::start()->one("SELECT * FROM points_log
                 WHERE status=2 AND point_id=" . $this->get('id'));
+            $model['point_id'] = $this->get('id');
             $model['date'] = $this->get(2);
+            $model['status'] = 2;
             DB::start()->upsert(static::TABLE . '_log', $model);
         }
 
@@ -43,7 +45,7 @@ abstract class Cfg
         return true;
     }
 
-    public function getOrig(?string $field = null, $default = null): array
+    public function getOrig(?string $field = null, $default = null)
     {
         return empty($field) ? $this->orig : $this->orig[$field] ?? $default;
     }
@@ -75,9 +77,10 @@ abstract class Cfg
         return !($orig == $new);
     }
 
-    public function dev(): string
+    public function name(): string
     {
-        return strtoupper($this->get('name', ''));
+        return $this->get('params.name', false) ?:
+            strtoupper($this->get('name', ''));
     }
 
     protected static function sort(array &$data): void

@@ -2,6 +2,7 @@
 
 use Parts\{Cfg, Point};
 use Helpers\DB;
+use Helpers\Helper;
 
 class Dev extends Cfg
 {
@@ -46,7 +47,8 @@ class Dev extends Cfg
     public static function runAll($paralel = false, $mode = 'r')
     {
         foreach (self::all(true) as $item)
-            if ($paralel) $stdouts[] = popen("php run " . $item->get('name'), $mode);
+            if ($paralel) $stdouts[] =
+                popen(Helper::phpExec('run', $item->get('name')), $mode);
             else Dev::createPoint($item->get('name'))->check();
 
         foreach ($stdouts ?? [] as $stdout)

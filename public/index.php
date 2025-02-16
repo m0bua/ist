@@ -4,8 +4,8 @@ include '../bootstrap.php';
 
 use Helpers\Html;
 
-if (isset($_GET['d']))
-    exit(Dev::createPoint($_GET['d'])->check($_GET));
+if (isset($_GET['d']) || isset($_GET['u']))
+    exit(Dev::createPoint($_GET['d'] ?? $_GET['u'])->check($_GET));
 elseif ($_GET['format'] ?? null === 'json')
     exit(Html::getClientsJson());
 elseif (isset($_GET['cfg']) && isset($_GET['name']))

@@ -19,7 +19,7 @@ class Income implements Point
                 $this->cfg->set(1, Helper::date());
             }
         } else {
-            echo "### " . $this->cfg->dev() . "\n";
+            echo "### " . $this->cfg->name() . "\n";
             if (
                 $this->cfg->get('status') &&
                 Helper::changed($this->cfg, 'dates.2')

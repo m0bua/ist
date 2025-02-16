@@ -49,17 +49,17 @@ class Msg
     private function tg(string $text, Dev $cfg): void
     {
         if (
-            empty($cfg->get('tgId')) ||
-            empty($cfg->get('tgKey')) ||
-            empty($cfg->get('tgChat'))
+            empty($cfg->get('tg.id')) ||
+            empty($cfg->get('tg.key')) ||
+            empty($cfg->get('tg.chat'))
         ) return;
 
         file_get_contents('https://api.telegram.org/'
             . strtr('bot{id}:{key}/sendMessage?', [
-                '{id}' => $cfg->get('tgId', false),
-                '{key}' => $cfg->get('tgKey', false),
+                '{id}' => $cfg->get('tg.id', false),
+                '{key}' => $cfg->get('tg.key', false),
             ]) . http_build_query([
-                'chat_id' => $cfg->get('tgChat', false),
+                'chat_id' => $cfg->get('tg.chat', false),
                 'text' => $text,
             ]));
     }
@@ -69,7 +69,7 @@ class Msg
         $pattern = ucfirst($pattern);
         $msg = $this->cfg->get("params.msg{$pattern}Pattern") ?? self::DEFAULT_MESSAGES[$pattern] ?? '';
         $params = [
-            'dev' => $this->cfg->dev(),
+            'dev' => $this->cfg->name(),
             'status' => $this->cfg->get('status'),
             'after' => Helper::after(
                 $this->cfg->get((int)!$this->cfg->get('status'), ''),
