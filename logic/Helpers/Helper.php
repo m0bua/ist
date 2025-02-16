@@ -1,10 +1,16 @@
 <?php
+
+namespace Helpers;
+
+use DateTimeZone;
+use Parts\Cfg;
+
 class Helper
 {
-    protected const DEFAULT_WAIT = '300';
-    protected static DateTimeZone $tz;
+    private const DEFAULT_WAIT = '300';
+    private static DateTimeZone $tz;
 
-    public static function after(string $date, ?string $format = null): string
+    public static function after(?string $date, ?string $format = null): string
     {
         if (empty($date)) return '';
         $diff = date_create($date)->diff(date_create());
@@ -22,11 +28,11 @@ class Helper
 
     public static function changed(Cfg $cfg, ?string $field = null): bool
     {
-        $date = $cfg->get($field ?? (int)$cfg->get('current'));
+        $date = $cfg->get($field ?? ('dates.' . $cfg->get('status')));
         if (empty($date)) return true;
 
         $wait = empty($_GET['t'])
-            ? $cfg->get('wait', self::DEFAULT_WAIT)
+            ? $cfg->get('params.wait', self::DEFAULT_WAIT)
             : $_GET['t'] + 1;
 
         return date_create("-$wait sec") > date_create($date);
@@ -52,33 +58,34 @@ class Helper
     }
 
     public static function getArrayKey(
-        array $array,
+        $array,
         ?string $field = null,
-        mixed $default = null
-    ): mixed {
+        $default = null
+    ) {
         if (is_null($field)) return $array;
         if (isset($array[$field])) return $array[$field];
         foreach (explode('.', $field) as $segment) {
-            if (!is_array($array) || !array_key_exists($segment, $array)) {
-                return $default;
-            }
+            if (is_string($array))
+                $array = json_decode($array, true) ?? $array;
+            if (
+                !is_array($array) ||
+                !array_key_exists($segment, $array)
+            ) return $default;
             $array = $array[$segment];
         }
         return $array;
     }
 
-    public static function path(mixed $path): string
-    {
-        if (is_string($path)) $path = [$path];
-
-        return implode(DIRECTORY_SEPARATOR, array_merge([ROOT], $path));
-    }
-
-    public static function ip()
+    public static function ip(): string
     {
         return $_SERVER['HTTP_CF_CONNECTING_IP']
             ?? $_SERVER['HTTP_X_FORWARDED_FOR']
             ?? $_SERVER['REMOTE_ADDR']
             ?? '';
+    }
+
+    public static function date(string $datetime = 'now'): string
+    {
+        return date_create($datetime)->format('Y-m-d H:i:s');
     }
 }

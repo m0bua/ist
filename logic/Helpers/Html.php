@@ -1,15 +1,22 @@
 <?php
 
+namespace Helpers;
+
+use Auth, Dev;
+
 class Html
 {
     public static function getClientsJson(): string
     {
-        foreach (Dev::all() as $key => $item)
-            $configs[$item->key($key)] = $item;
-        if (empty($configs)) return json_encode([]);
+        foreach (Dev::all() as $item)
+            $configs[$item->dev()] = $item;
+
+        if (empty($configs))
+            return json_encode([]);
+
         ksort($configs);
 
-        $maxKeys = max(array_map(fn ($i) => count(explode('_', $i)), array_keys($configs)));
+        $maxKeys = max(array_map(fn($i) => count(explode('_', $i)), array_keys($configs)));
 
         $children = [
             ['tag' => 'th', 'params' => ['colspan' => $maxKeys], 'text' => 'Device'],
@@ -19,24 +26,27 @@ class Html
             ['tag' => 'th', 'text' => 'Last Off'],
         ];
 
-        if (!empty(Auth::get('cliAdm')))
-            $children[] = ['tag' => 'th', 'text' => 'Update'];
+        if (!empty(Auth::clients())) $children[] = ['tag' => 'th', 'text' => 'Update'];
 
-        return json_encode([['tag' => 'br'], ['tag' => 'table', 'children' => array_merge([
+
+        $response = json_encode([['tag' => 'br'], ['tag' => 'table', 'children' => array_merge([
             ['tag' => 'tr', 'children' => $children]
         ], self::dataJsonRows($configs))]]);
+
+        header('Content-Type: application/json; charset=utf-8');
+        return $response;
     }
 
     protected static function dataJsonRows(array $configs): array
     {
         $split = array_map(
-            fn ($i) => explode('_', $i),
+            fn($i) => explode('_', $i),
             array_combine(array_keys($configs), array_keys($configs))
         );
-        $max = max(array_map(fn ($i) => count($i), $split));
+        $max = max(array_map(fn($i) => count($i), $split));
 
         foreach ($configs as $dev => $cfg) {
-            $status = $cfg->get('current');
+            $status = (bool)$cfg->get('status');
             $children = [];
             foreach ($split[$dev] as $k => $name) {
                 $same = array_filter($split, function ($item) use ($split, $dev, $k) {
@@ -44,7 +54,7 @@ class Html
                         && (($item[$i] ?? '') === $split[$dev][$i]);
                     return $res ?? false;
                 });
-                $blockMax = max(array_map(fn ($i) => count($i), $same));
+                $blockMax = max(array_map(fn($i) => count($i), $same));
 
                 if (array_search($dev, array_keys($same)) === 0)
                     $children[] = ['tag' => 'td', 'params' => [
@@ -57,24 +67,29 @@ class Html
 
             if (count($split[$dev]) < $blockMax)
                 $children[] = ['tag' => 'td', 'params' => [
-                    'rowspan' => 1, 'colspan' => $max - count($split[$dev]),
+                    'rowspan' => 1,
+                    'colspan' => $max - count($split[$dev]),
                 ], 'text' => null];
-
 
             $row = ['tag' => 'tr', 'children' => array_merge($children, [
                 ['tag' => 'td', 'params' => [
                     'style' => ['color' => $status ? 'green' : 'red']
                 ], 'text' => $status ? 'On' : 'Off'],
-                ['tag' => 'td', 'text' => Helper::after($cfg->get((int)$status), $cfg->get('dateDiffFormat'))],
-                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get(1), $cfg->get('dateFormat'))],
-                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get(0), $cfg->get('dateFormat'))],
+                ['tag' => 'td', 'text' => Helper::after(
+                    $cfg->get('dates.' . (int)$status),
+                    $cfg->get('params.dateDiffFormat')
+                )],
+                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get('dates.1'), $cfg->get('params.dateFormat'))],
+                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get('dates.0'), $cfg->get('params.dateFormat'))],
             ])];
 
-            if (Auth::client($cfg->name(), true))
+            if (Auth::client($cfg->get('name'), true))
                 $row['children'][] = ['tag' => 'td', 'children' => [[
-                    'tag' => 'button', 'text' => $cfg->get('active') ? 'On' : 'Off',
+                    'tag' => 'button',
+                    'text' => $cfg->get('active') ? 'On' : 'Off',
                     'params' => [
-                        'id' => $cfg->name(), 'class' => 'isActive',
+                        'id' => $cfg->get('name'),
+                        'class' => 'isActive',
                         'style' => ['background' => $cfg->get('active') ? 'green' : 'red']
                     ]
                 ]]];

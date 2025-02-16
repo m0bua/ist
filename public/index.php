@@ -2,14 +2,14 @@
 
 include '../bootstrap.php';
 
-if (isset($_GET['d'])) {
-    exit((new Reverse($_GET, true))->request());
-} elseif (isset($_GET['format']) && $_GET['format'] === 'json') {
-    header('Content-Type: application/json; charset=utf-8');
+use Helpers\Html;
+
+if (isset($_GET['d']))
+    exit(Dev::createPoint($_GET['d'])->check($_GET));
+elseif ($_GET['format'] ?? null === 'json')
     exit(Html::getClientsJson());
-} elseif (isset($_GET['cfg']) && isset($_GET['name'])) {
-    exit((new Dev($_GET['name']))->change($_GET['cfg']));
-}
+elseif (isset($_GET['cfg']) && isset($_GET['name']))
+    exit(Dev::create($_GET['name'])->change($_GET['cfg']));
 ?>
 <!DOCTYPE html>
 <html>

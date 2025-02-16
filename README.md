@@ -1,26 +1,20 @@
 Site status checker with TG bot.
 
-## Configs examples
-### Telegram API (tg.json file):
-```json
-{
-    "id":"id",
-    "key":"api_key"
-}
+## Usage:
+### Run:
+```bash
+php run
+php run test
 ```
 
-## Usage:
-### Test run or config init:
+### Income query:
 ```bash
-php direct.php test google.com tgc={telegram_chat_id} msg="{status:🔴|🟢} Test {status:power off|power on}{after: after #}!"
-php reverse.php test google.com tgc={telegram_chat_id} msg="{status:🔴|🟢} Test {status:power off|power on}{after: after #}!"
 curl -i "https://site.domain/?d=test&u=usename&p=password&m=extra%20message"
-
 ```
 
 ### Crontab:
 ```
-*/1 * * * * php /path/to/project/all.php
+*/1 * * * * php /path/to/project/run
 ```
 
 ## License

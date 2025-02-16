@@ -1,96 +1,104 @@
 <?php
 
+use Parts\Storage;
+use Helpers\{DB, Helper};
+
 class Auth
 {
-    const LOGIN_FILE = '/login.php';
+    use Storage;
 
-    protected Cfg $cfg;
-    protected array $origKeys = [];
-    protected array $session = [];
+    private const TABLE = 'auth';
+    private const LOGIN_path = '/login.php';
 
     function __construct()
     {
-        if (php_sapi_name() == 'cli') return;
         session_start(['cookie_lifetime' => 30 * 24 * 60 * 60]);
-        $this->session = $_SESSION;
-        $this->cfg = new Cfg('auth');
-        $this->origKeys = array_keys($this->cfg->getData());
-    }
-
-    function __destruct()
-    {
-        $_SESSION = $this->session;
-        foreach ($this->origKeys as $key)
-            if (empty($this->cfg->get($key))) die;
     }
 
     public function start(): void
     {
-        if (php_sapi_name() == 'cli') return;
-        $this->autorize(empty($_POST)
-            ? [$_GET['u'] ?? null, $_GET['p'] ?? null]
-            : [$_POST['username'] ?? null, $_POST['password'] ?? null]);
+        $crd = empty($_POST) ? $_GET : $_POST;
+        $this->autorize(
+            $crd['username'] ?? $crd['u'] ?? '',
+            $crd['password'] ?? $crd['p'] ?? '',
+        );
 
         if (
-            $_SERVER['SCRIPT_NAME'] !== self::LOGIN_FILE
+            $_SERVER['SCRIPT_NAME'] !== self::LOGIN_path
             && !$this->authorized($_GET['d'] ?? null)
-        ) exit(header('location: ' . self::LOGIN_FILE));
+        ) exit(header('location: ' . self::LOGIN_path));
     }
 
-    public function authorized(?string $client = null): bool
+    public static function id(): ?string
     {
-        $user = ($this->session['user'] ?? null);
-        $result = ($this->session['auth'] ?? false) === true
-            && $this->cfg->get("$user.auth", false)
-            && (empty($client)
-                ? !$this->cfg->get("$user.client", false)
-                : $client = $this->cfg->get("$user.client"));
-
-        return $result;
+        return $_SESSION['id'] ?? null;
     }
 
     public static function client(string $name, bool $admin): bool
     {
-        if (php_sapi_name() == 'cli') return true;
-        $clients = self::get($admin ? 'cliAdm' : 'clients', []);
+        $clients = self::clients($admin);
 
-        if ($clients === '*') return true;
-        elseif (is_array($clients)) return in_array($name, $clients);
-        else return false;
+        return is_array($clients) ? in_array($name, $clients) : false;
     }
 
-    public static function get(?string $field = null, mixed $default = null): mixed
+    public static function clients(bool $admin = true): array
     {
-        return Helper::getArrayKey($_SESSION, $field, $default);
+        $sql = "SELECT points.name FROM user_points
+            INNER JOIN auth ON auth.id = user_points.user_id
+            INNER JOIN points ON points.id = user_points.point_id
+            WHERE auth.id='{$_SESSION['id']}'";
+        if ($admin) $sql .= " AND user_points.admin=1";
+
+        $result = array_map(fn($i) => $i['name'], DB::start()->all($sql));
+
+        return $result;
     }
 
-    protected function autorize(array $params): void
+    private function autorize(string $user, string $pass): void
     {
-        [$u, $p] = $params;
-        if (empty($u)) return;
-
-        $user = $this->cfg->get($u, [
-            'auth' => false,
-            'hash' => $this->hash($u, $p),
-            'created' => date_create()->format('c'),
-            'create_ip' => $_SERVER['SERVER_ADDR'] ?? null
-        ]);
-        $this->session['auth'] = $this->hash($u, $p) === $user['hash'] && $user['auth'] === true;
-        if ($this->session['auth']) {
-            $this->session['user'] = $u;
-            $this->session['clients'] = $this->cfg->get("$u.clients", []);
-            $this->session['cliAdm'] = $this->cfg->get("$u.cliAdm", []);
-            $user['last_login'] = date_create()->format('c');
-            $user['last_login_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
+        if (empty($user) || empty($pass)) return;
+        $model = DB::start()->one("SELECT * FROM auth WHERE login='$user'");
+        if (!$model) {
+            $created = Helper::date();
+            $model = [
+                'login' => $user,
+                'auth' => false,
+                'hash' => $this->hash($user, $pass, $created),
+                'created' => $created,
+                'create_ip' => $_SERVER['SERVER_ADDR'] ?? null
+            ];
         }
-        $user['last_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
-        $this->cfg->set($u, $user);
-        if ($this->session['auth'] && empty($_GET)) exit(header('location: /'));
+
+        $this->setData($model);
+        $hash = $this->hash($user, $pass, $this->data['created']);
+
+        if ($this->data['hash'] === $hash && (bool)$this->data['auth']) {
+            $_SESSION['id'] = $this->data['id'] ?? null;
+            $this->data['last_login'] = Helper::date();
+            $this->data['last_login_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
+        }
+        $this->data['last_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
+        if (isset($_SESSION['id']) && empty($_GET)) {
+            header('location: /');
+            exit();
+        }
     }
 
-    protected function hash(string $usr, string $pwd): string
+    private function hash(string $usr, string $pwd, string $created): string
     {
-        return sha1(implode('-', [$usr, $pwd, $this->cfg
-            ->get("$usr.created", date_create()->format('c'))]));
+        return sha1(implode('-', [$usr, $pwd, Helper::date($created)]));
+    }
+
+    private function authorized(?string $client = null): bool
+    {
+        if (empty($_SESSION['id'])) return false;
+        $user = DB::start()->one("SELECT * FROM auth
+            WHERE id='{$_SESSION['id']}' AND auth=1");
+        if (empty($user)) {
+            unset($_SESSION['id']);
+            return false;
+        }
+
+        return empty($client) ? true : in_array($client, self::clients(false));
     }
 }
