@@ -24,15 +24,6 @@ abstract class Cfg
             'date' => $this->get($i),
         ]);
 
-        if ($this->get(2, false)) {
-            $model = DB::start()->one("SELECT * FROM points_log
-                WHERE status=2 AND point_id=" . $this->get('id'));
-            $model['point_id'] = $this->get('id');
-            $model['date'] = $this->get(2);
-            $model['status'] = 2;
-            DB::start()->upsert(static::TABLE . '_log', $model);
-        }
-
         $this->save();
     }
 

@@ -10,7 +10,7 @@ class Income implements Point
     public function check(array $data = []): void
     {
         if ($data) {
-            $this->cfg->set(2, Helper::date());
+            $this->cfg->set('updated', Helper::date());
             $this->cfg->set('address', Helper::ip());
             if(isset($data['m']))
                 $this->cfg->set('message', $data['m']);
@@ -22,7 +22,7 @@ class Income implements Point
             echo "### " . $this->cfg->name() . "\n";
             if (
                 $this->cfg->get('status') &&
-                Helper::changed($this->cfg, 'dates.2')
+                Helper::changed($this->cfg, 'updated')
             ) {
                 $this->cfg->set('status', 0);
                 $this->cfg->set(0, Helper::date());

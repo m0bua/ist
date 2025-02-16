@@ -10,7 +10,6 @@ CREATE TABLE `auth` (
   `auth` tinyint(1) DEFAULT '0',
   `cli_id` int(11) DEFAULT NULL,
   `create_ip` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `last_ip` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `last_login_ip` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created` datetime DEFAULT CURRENT_TIMESTAMP,
   `last_login` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -36,6 +35,7 @@ CREATE TABLE `points` (
   `status` tinyint(1) NOT NULL DEFAULT '0',
   `address` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `tg_id` int(11) DEFAULT NULL,
+  `updated` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_class` (`name`,`class`),
   KEY `tg_id` (`tg_id`),
@@ -78,4 +78,4 @@ CREATE TABLE `user_points` (
 
 
 DROP TABLE IF EXISTS `points_view`;
-CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `points_view` AS select `p`.`id` AS `id`,`p`.`name` AS `name`,`p`.`class` AS `class`,`p`.`active` AS `active`,`p`.`status` AS `status`,`p`.`address` AS `address`,if(isnull(`l`.`status`),json_object(),json_objectagg(coalesce(`l`.`status`,''),`l`.`date`)) AS `dates`,if(isnull(`pp`.`name`),json_object(),json_objectagg(coalesce(`pp`.`name`,''),`pp`.`value`)) AS `params`,if(isnull(`ist`.`auth`.`id`),json_object(),json_objectagg(coalesce(`ist`.`auth`.`id`,''),`up`.`admin`)) AS `users`,json_object('id',`ist`.`tg`.`botId`,'key',`ist`.`tg`.`botKey`,'chat',`ist`.`tg`.`chat`) AS `tg` from (((((`ist`.`points` `p` left join (select `ist`.`points_log`.`point_id` AS `point_id`,`ist`.`points_log`.`status` AS `status`,max(`ist`.`points_log`.`date`) AS `date` from `ist`.`points_log` group by `ist`.`points_log`.`point_id`,`ist`.`points_log`.`status` order by `ist`.`points_log`.`status`) `l` on((`l`.`point_id` = `p`.`id`))) left join `ist`.`points_params` `pp` on((`p`.`id` = `pp`.`point_id`))) left join `ist`.`user_points` `up` on((`up`.`point_id` = `p`.`id`))) left join `ist`.`auth` on((`ist`.`auth`.`id` = `up`.`user_id`))) left join `ist`.`tg` on((`ist`.`tg`.`id` = `p`.`tg_id`))) group by `p`.`id` order by `p`.`name`,`p`.`class`;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `points_view` AS select `p`.`id` AS `id`,`p`.`name` AS `name`,`p`.`class` AS `class`,`p`.`active` AS `active`,`p`.`status` AS `status`,`p`.`address` AS `address`,`p`.`address` AS `updated`,if(isnull(`l`.`status`),json_object(),json_objectagg(coalesce(`l`.`status`,''),`l`.`date`)) AS `dates`,if(isnull(`pp`.`name`),json_object(),json_objectagg(coalesce(`pp`.`name`,''),`pp`.`value`)) AS `params`,if(isnull(`ist`.`auth`.`id`),json_object(),json_objectagg(coalesce(`ist`.`auth`.`id`,''),`up`.`admin`)) AS `users`,json_object('id',`ist`.`tg`.`botId`,'key',`ist`.`tg`.`botKey`,'chat',`ist`.`tg`.`chat`) AS `tg` from (((((`ist`.`points` `p` left join (select `ist`.`points_log`.`point_id` AS `point_id`,`ist`.`points_log`.`status` AS `status`,max(`ist`.`points_log`.`date`) AS `date` from `ist`.`points_log` group by `ist`.`points_log`.`point_id`,`ist`.`points_log`.`status` order by `ist`.`points_log`.`status`) `l` on((`l`.`point_id` = `p`.`id`))) left join `ist`.`points_params` `pp` on((`p`.`id` = `pp`.`point_id`))) left join `ist`.`user_points` `up` on((`up`.`point_id` = `p`.`id`))) left join `ist`.`auth` on((`ist`.`auth`.`id` = `up`.`user_id`))) left join `ist`.`tg` on((`ist`.`tg`.`id` = `p`.`tg_id`))) group by `p`.`id` order by `p`.`name`,`p`.`class`;

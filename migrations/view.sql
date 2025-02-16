@@ -1,4 +1,4 @@
-select p.id, p.name, p.class, p.active, p.status, p.address,
+select p.id, p.name, p.class, p.active, p.status, p.address, p.updated,
     if(l.status is null, json_object(),
         json_objectagg(coalesce(l.status, ''), l.date)) as dates,
     if(pp.name is null, json_object(),

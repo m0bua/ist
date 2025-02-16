@@ -28,12 +28,10 @@ class Helper
 
     public static function changed(Cfg $cfg, ?string $field = null): bool
     {
-        $date = $cfg->get($field ?? ('dates.' . $cfg->get('status')));
+        $date = $cfg->get($field ?? $cfg->get('status'));
         if (empty($date)) return true;
 
-        $wait = empty($_GET['t'])
-            ? $cfg->get('params.wait', self::DEFAULT_WAIT)
-            : $_GET['t'] + 1;
+        $wait = $cfg->get('params.wait', self::DEFAULT_WAIT);
 
         return date_create("-$wait sec") > date_create($date);
     }

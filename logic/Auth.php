@@ -70,19 +70,19 @@ class Auth
                 'auth' => false,
                 'hash' => $this->hash($user, $pass, $created),
                 'created' => $created,
-                'create_ip' => $_SERVER['SERVER_ADDR'] ?? null
+                'create_ip' => Helper::ip()
             ];
         }
 
         $this->setData($model);
         $hash = $this->hash($user, $pass, $this->data['created']);
 
-        if ($this->data['hash'] === $hash && (bool)$this->data['auth']) {
-            $_SESSION['id'] = $this->data['id'] ?? null;
+        if ($this->data['hash'] === $hash) {
+            if ((bool)$this->data['auth'])
+                $_SESSION['id'] = $this->data['id'] ?? null;
             $this->data['last_login'] = Helper::date();
-            $this->data['last_login_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
+            $this->data['last_login_ip'] = Helper::ip();
         }
-        $this->data['last_ip'] = $_SERVER['SERVER_ADDR'] ?? null;
         if (isset($_SESSION['id']) && empty($_GET))
             exit(header('location: /'));
     }

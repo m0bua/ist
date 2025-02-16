@@ -26,7 +26,7 @@ class Msg
 
         if ($this->cfg->changed('address') && $this->cfg->get('params.showIp', false)) {
             if (empty($text)) $text[] = self::prepare('header');
-            $text[] = self::prepare('address');
+            $text[] = self::prepare('ip');
         }
 
         if ($this->cfg->changed('message')) {
@@ -72,7 +72,7 @@ class Msg
             'dev' => $this->cfg->name(),
             'status' => $this->cfg->get('status'),
             'after' => Helper::after(
-                $this->cfg->get((int)!$this->cfg->get('status'), ''),
+                $this->cfg->get('dates.' . (int)!$this->cfg->get('status'), ''),
                 $this->cfg->get('params.dateDiffFormat')
             ),
             'address' => '',
@@ -81,7 +81,8 @@ class Msg
             $params[$key] = $this->cfg->changed($key) ? $this->cfg->get($key) : '';
         if ($this->cfg->changed('address'))
             $params['address'] = empty($this->cfg->getOrig('params.ip'))
-                ? $this->cfg->get('params.ip') : [$this->cfg->getOrig('params.ip'), $this->cfg->get('params.ip')];
+                ? $this->cfg->get('params.ip')
+                : [$this->cfg->getOrig('params.ip'), $this->cfg->get('params.ip')];
 
         self::fields($msg, $params);
 

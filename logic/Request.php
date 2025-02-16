@@ -11,6 +11,7 @@ class Request implements Point
     public function check(array $data = []): void
     {
         echo "### " . $this->cfg->name() . "\n";
+        $this->cfg->set('updated', Helper::date());
         $this->test();
         if (
             ($this->status || Helper::changed($this->cfg))
