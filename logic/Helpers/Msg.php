@@ -7,8 +7,8 @@ use Dev;
 class Msg
 {
     private const DEFAULT_MESSAGES = [
-        '' => '{status::🔴||🟢} {dev} status is '
-            . '{status::off||on}{after:: after #}.',
+        '' => '{status::🔴||🟢||📉||📈} {dev} status is '
+            . '{status::off||on||low||high}{after:: after #}.',
         'Header' => '{dev}: ',
         'Ip' => '{ip::IP changed #&to #& => #}.',
         'Text' => '{message}.',
@@ -112,7 +112,7 @@ class Msg
                     $field = empty($params[$key]) ? ''
                         : str_replace('#', $params[$key], $field);
                 elseif (strpos($field, '||') !== false)
-                    $field = explode('||', $field)[$params[$key]];
+                    $field = explode('||', $field)[$params[$key]] ?? '';
             } else $field = $params[$trim] ?? '';
 
             $msg = str_replace($item, $field, $msg);

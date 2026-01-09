@@ -8,6 +8,9 @@ abstract class Cfg
 {
     use Storage;
 
+    public $statuses = [0, 1];
+    public $fields = [];
+
     function __construct(array $data)
     {
         $this->setData($data);
@@ -15,7 +18,7 @@ abstract class Cfg
 
     function __destruct()
     {
-        foreach ([0, 1] as $i) if (
+        foreach ($this->statuses as $i) if (
             $this->get($i, false) &&
             $i !== $this->getOrig('status')
         ) DB::start()->upsert(static::TABLE . '_log', [
@@ -23,6 +26,13 @@ abstract class Cfg
             'status' => $i,
             'date' => $this->get($i),
         ]);
+
+        foreach ($this->fields as $f)
+            DB::start()->upsert(static::TABLE . '_params', [
+                'point_id' => $this->get('id'),
+                'name' => $f,
+                'value' => $this->get($f),
+            ]);
 
         $this->save();
     }

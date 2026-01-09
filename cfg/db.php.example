@@ -6,7 +6,7 @@ return [
     'user' => 'root',
     'pass' => 'secret',
     'opt' => [
-        PDO::MYSQL_ATTR_INIT_COMMAND =>
+        Pdo\Mysql::ATTR_INIT_COMMAND =>
         "SET sql_mode = REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY','')"
     ]
 ];

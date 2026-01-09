@@ -56,7 +56,7 @@ CREATE TABLE `points_log` (
 CREATE TABLE `points_params` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `point_id` int(11) NOT NULL,
-  `name` enum('name','msgPattern','msgHeaderPattern','msgIpPattern','msgTextPattern','dateFormat','dateDiffFormat','wait','tries','timeout','showIp','cliId','cliSecret','device') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `name` enum('name','msgPattern','msgHeaderPattern','msgIpPattern','msgTextPattern','dateFormat','dateDiffFormat','wait','tries','timeout','showIp','cliId','cliSecret','device','voltage') COLLATE utf8mb4_unicode_ci NOT NULL,
   `value` text COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `point_id_name` (`point_id`,`name`),

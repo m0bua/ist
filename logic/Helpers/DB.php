@@ -2,6 +2,7 @@
 
 namespace Helpers;
 
+use ErrorException;
 use PDO;
 
 class DB
@@ -78,7 +79,13 @@ class DB
 
     private function exec(string $query, array $data = [])
     {
-        $stmt = $this->pdo->prepare($query);
-        return $stmt->execute($data);
+        try {
+            $stmt = $this->pdo->prepare($query);
+            $result = $stmt->execute($data);
+        } catch (\PDOException $e) {
+            var_dump($e->getMessage() . ", SQL: $query\n", $data);
+        }
+
+        return $result ?? false;
     }
 }
