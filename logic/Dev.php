@@ -7,28 +7,23 @@ use Helpers\Helper;
 class Dev extends Cfg
 {
     protected const TABLE = 'points';
-    public const CFG_TYPES = [
-        Request::class,
-        Income::class,
-    ];
 
     public static function create(string $dev): self
     {
         $dev = DB::start()->one("SELECT * FROM points_view WHERE name='$dev'");
-
-        if (empty($dev['class']))
-            exit("Device not found!\n");
-        if (!in_array($dev['class'], self::CFG_TYPES))
-            exit("Uncnown type!\n");
+        if (empty($dev['class'])) exit("Device not found!\n");
 
         return new self($dev);
     }
 
-    public static function createPoint(string $dev): Point
+    public static function createPoint(string $dev, array $data = []): ?Point
     {
         $cfg = self::create($dev);
+        $class = self::class($cfg->get('class'));
 
-        return $cfg->get('class')::init($cfg);
+        return class_exists($class)
+            ? $class::init($cfg)->check($data)
+            : null;
     }
 
     public static function all(): array
@@ -49,9 +44,14 @@ class Dev extends Cfg
         foreach (self::all(true) as $item)
             if ($paralel) $stdouts[] =
                 popen(Helper::phpExec('run', $item->get('name')), $mode);
-            else Dev::createPoint($item->get('name'))->check();
+            else self::createPoint($item->get('name'));
 
         foreach ($stdouts ?? [] as $stdout)
             while (!feof($stdout)) echo fgets($stdout);
+    }
+
+    public static function class($class)
+    {
+        return "Points\\$class";
     }
 }

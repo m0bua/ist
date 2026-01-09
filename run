@@ -4,4 +4,4 @@ include 'bootstrap.php';
 
 if (empty($argv[1]) || $argv[1] == '-p')
     Dev::runAll($argv[1] ?? null == '-p');
-else Dev::createPoint($argv[1])->check();
+else Dev::createPoint($argv[1]);

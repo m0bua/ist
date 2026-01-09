@@ -2,3 +2,4 @@
 cfg/*
 !cfg/.gitkeep
 !cfg/*.example
+/vendor

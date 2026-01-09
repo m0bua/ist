@@ -1,0 +1,67 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "38db1543454c96ec114ef3292b780348",
+    "packages": [
+        {
+            "name": "tuyapiphp/tuyapiphp",
+            "version": "1.1.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ground-creative/tuyapiphp.git",
+                "reference": "4aa749ef1eff30abcd87d244a40c91009dd2627d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ground-creative/tuyapiphp/zipball/4aa749ef1eff30abcd87d244a40c91009dd2627d",
+                "reference": "4aa749ef1eff30abcd87d244a40c91009dd2627d",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "tuyapiphp\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "groundcreative",
+                    "email": "carlo@ground-creative.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Tuya cloud api home management php client",
+            "keywords": [
+                "Tuya",
+                "smart life"
+            ],
+            "support": {
+                "issues": "https://github.com/ground-creative/tuyapiphp/issues",
+                "source": "https://github.com/ground-creative/tuyapiphp/tree/v1.1.2"
+            },
+            "time": "2023-10-02T17:54:41+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

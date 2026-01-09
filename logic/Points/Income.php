@@ -1,5 +1,8 @@
 <?php
 
+namespace Points;
+
+use Dev;
 use Helpers\{Helper, Msg};
 use Parts\Point;
 

@@ -1,5 +1,8 @@
 <?php
 
+namespace Points;
+
+use Dev;
 use Helpers\{Helper, Msg};
 use Parts\Point;
 
@@ -53,7 +56,8 @@ class Request implements Point
         [$recived] = explode(' ', explode(', ', $result)[1] ?? $result);
 
         $this->status = $recived > 0;
-        echo "$output";
+
+        echo $output;
     }
 
     protected function fSockOpen(string $server, int $port): void

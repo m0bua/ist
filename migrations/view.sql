@@ -1,9 +1,9 @@
 select p.id, p.name, p.class, p.active, p.status, p.address, p.updated,
-    if(l.status is null, json_object(),
+    if(l.point_id is null, json_object(),
         json_objectagg(coalesce(l.status, ''), l.date)) as dates,
-    if(pp.name is null, json_object(),
+    if(pp.point_id is null, json_object(),
         json_objectagg(coalesce(pp.name, ''), pp.value)) as params,
-    if(auth.id is null, json_object(),
+    if(up.point_id is null, json_object(),
         json_objectagg(coalesce(auth.id, ''), up.admin)) as users,
     json_object('id', tg.botid, 'key', tg.botkey, 'chat', tg.chat) as tg
 from points p

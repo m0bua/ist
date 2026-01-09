@@ -1,0 +1,5 @@
+{
+    "require": {
+        "tuyapiphp/tuyapiphp": "^1.1"
+    }
+}
