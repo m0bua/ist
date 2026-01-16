@@ -46,7 +46,7 @@ class Html
         $max = max(array_map(fn($i) => count($i), $split));
 
         foreach ($configs as $dev => $cfg) {
-            $status = (bool)$cfg->get('status');
+            $status = $cfg->get('status');
             $children = [];
             foreach ($split[$dev] as $k => $name) {
                 $same = array_filter($split, function ($item) use ($split, $dev, $k) {
@@ -72,15 +72,34 @@ class Html
                 ], 'text' => null];
 
             $row = ['tag' => 'tr', 'children' => array_merge($children, [
-                ['tag' => 'td', 'params' => [
-                    'style' => ['color' => $status ? 'green' : 'red']
-                ], 'text' => $status ? 'On' : 'Off'],
+                [
+                    'tag' => 'td',
+                    'params' => [
+                        'style' => ['color' => match ($status) {
+                            0 => 'red',
+                            2, 3 => 'yellow',
+                            default => 'green',
+                        }]
+                    ],
+                    'text' => match ($status) {
+                        0 => 'Off',
+                        2 => 'Low',
+                        3 => 'High',
+                        default => 'On',
+                    }
+                ],
                 ['tag' => 'td', 'text' => Helper::after(
-                    $cfg->get('dates.' . (int)$status),
+                    $cfg->get('dates.' . $status),
                     $cfg->get('params.dateDiffFormat')
                 )],
-                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get('dates.1'), $cfg->get('params.dateFormat'))],
-                ['tag' => 'td', 'text' => Helper::dateFormat($cfg->get('dates.0'), $cfg->get('params.dateFormat'))],
+                ['tag' => 'td', 'text' => Helper::dateFormat(
+                    $cfg->get('dates.1'),
+                    $cfg->get('params.dateFormat')
+                )],
+                ['tag' => 'td', 'text' => Helper::dateFormat(
+                    $cfg->get('dates.0'),
+                    $cfg->get('params.dateFormat')
+                )],
             ])];
 
             if (Auth::client($cfg->get('name'), true))
