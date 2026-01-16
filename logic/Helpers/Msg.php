@@ -8,7 +8,7 @@ class Msg
 {
     private const DEFAULT_MESSAGES = [
         '' => '{status::🔴||🟢||📉||📈} {dev} status is '
-            . '{status::off||on||low||high}{after:: after #}.',
+            . '{status::off||on||low||high}{v:: (#V)}{after:: after #}.',
         'Header' => '{dev}: ',
         'Ip' => '{ip::IP changed #&to #& => #}.',
         'Text' => '{message}.',
@@ -20,9 +20,7 @@ class Msg
     {
         $this->cfg = $cfg;
 
-        if ($this->cfg->changed('status')) {
-            $text[] = self::prepare();
-        }
+        if ($this->cfg->changed('status')) $text[] = self::prepare();
 
         if ($this->cfg->changed('address') && $this->cfg->get('params.showIp', false)) {
             if (empty($text)) $text[] = self::prepare('header');
@@ -64,7 +62,7 @@ class Msg
             ]));
     }
 
-    private function prepare(string $pattern = ''): string
+    private function prepare(string $pattern = ''): ?string
     {
         $pattern = ucfirst($pattern);
         $msg = $this->cfg->get("params.msg{$pattern}Pattern") ?? self::DEFAULT_MESSAGES[$pattern] ?? '';
@@ -89,7 +87,7 @@ class Msg
         return $msg;
     }
 
-    private static function fields(string &$msg, array $params)
+    private static function fields(?string &$msg, array $params)
     {
         $preg = '/{[^{}]+}/';
         preg_match_all($preg, $msg, $matches);
@@ -97,25 +95,29 @@ class Msg
             $trim = trim($item, '{}');
             if (strpos($trim, '::') !== false) {
                 [$key, $field] = explode('::', $trim);
+                $param = $params[$key];
                 if (strpos($field, '#&') !== false) {
                     [$field, $single, $add] = explode('&', $field);
-                    if (is_array($params[$key])) {
-                        $field = str_replace('#', reset($params[$key]), $field);
-                        if (count($params[$key]) > 1)
-                            foreach (array_slice($params[$key], 1) as $v)
+                    if (is_array($param)) {
+                        $field = str_replace('#', reset($param), $field);
+                        if (count($param) > 1)
+                            foreach (array_slice($param, 1) as $v)
                                 $field .= str_replace('#', $v, $add);
-                    } elseif (!empty($params[$key])) {
-                        $single = str_replace('#', $params[$key], $single);
+                    } elseif (!empty($param)) {
+                        $single = str_replace('#', $param, $single);
                         $field = str_replace('#', $single, $field);
                     } else $field = '';
                 } elseif (strpos($field, '#') !== false)
-                    $field = empty($params[$key]) ? ''
-                        : str_replace('#', $params[$key], $field);
-                elseif (strpos($field, '||') !== false)
-                    $field = explode('||', $field)[$params[$key]] ?? '';
+                    $field = empty($param) ? ''
+                        : str_replace('#', $param, $field);
+                elseif (strpos($field, '||') !== false) {
+                    $ex = explode('||', $field);
+                    if (empty($ex[$param])) $msg = '';
+                    $field = $ex[$param] ?? '';
+                }
             } else $field = $params[$trim] ?? '';
 
-            $msg = str_replace($item, $field, $msg);
+            if (!empty($msg)) $msg = str_replace($item, $field, $msg);
         }
 
         if (preg_match($preg, $msg)) self::fields($msg, $params);

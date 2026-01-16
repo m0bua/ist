@@ -10,21 +10,12 @@ use Parts\Point;
 
 class Tuya implements Point
 {
-    const STATUSES = [
-        0 => 'off',
-        1 => 'on',
-        2 => 'low',
-        3 => 'high',
-    ];
-
     protected Dev $cfg;
     protected int $status;
 
     public function check(array $data = []): void
     {
         echo "### " . $this->cfg->name() . "\n";
-        $this->cfg->statuses = array_keys(self::STATUSES);
-        $this->cfg->fields = ['voltage'];
         $this->cfg->set('updated', Helper::date());
         $this->test();
         if (
@@ -49,28 +40,34 @@ class Tuya implements Point
     private function test()
     {
         $tuya = new TuyaApi([
-            'accessKey' => $this->cfg->get('params.cliId'),
-            'secretKey' => $this->cfg->get('params.cliSecret'),
+            'accessKey' => $this->cfg->get('params.cli.id'),
+            'secretKey' => $this->cfg->get('params.cli.secret'),
             'baseUrl' => $this->cfg->get('address')
         ]);
         $token = $tuya->token->get_new()->result->access_token ?? null;
-
-        $res = $tuya->devices($token)->get_details($this->cfg->get('params.device'))->result;
-
-        $statuses = array_combine(
+        $res = $tuya->devices($token)
+            ->get_details($this->cfg->get('params.cli.dev'))->result;
+        $valArr = array_combine(
             array_column($res->status, 'code'),
             array_column($res->status, 'value')
         );
-        $v = ($statuses['cur_voltage'] ?? 0) / 10;
 
-        $status = match (true) {
+        $v = $res->online ? ($valArr['cur_voltage'] ?? 0) / 10 : 0;
+        $s = $this->cfg->get('status');
+        $vp = json_decode($this->cfg->get('params.voltage', '{}'));
+        $sCnt = $this->cfg->statusesCnt();
+        $this->status = match (true) {
             !$res->online => 0,
-            $this->cfg->get('params.minV') > 0 && $this->cfg->get('params.minV') > $v => 2,
-            $this->cfg->get('params.maxV') > 0 && $this->cfg->get('params.maxV') < $v => 3,
-            default => 1
+            isset($vp->min) && $sCnt >= 3 && $vp->min > $v => 2,
+            isset($vp->max) && $sCnt >= 4 && $vp->max < $v => 3,
+            $s == 0 ||
+                (isset($vp->min) && $s == 2 && ($vp->min + ($vp->back ?? 1)) < $v) ||
+                (isset($vp->max) && $s == 3 && ($vp->max - ($vp->back ?? 1)) > $v) => 1,
+            default => $s
         };
 
-        $this->cfg->set('status', $status);
-        $this->cfg->set('voltage', $v);
+        $this->cfg->set('status', $this->status);
+        $this->cfg->set((int)$this->status, Helper::date());
+        $this->cfg->set('v', $v);
     }
 }

@@ -8,7 +8,6 @@ abstract class Cfg
 {
     use Storage;
 
-    public $statuses = [0, 1];
     public $fields = [];
 
     function __construct(array $data)
@@ -18,14 +17,18 @@ abstract class Cfg
 
     function __destruct()
     {
-        foreach ($this->statuses as $i) if (
-            $this->get($i, false) &&
-            $i !== $this->getOrig('status')
-        ) DB::start()->upsert(static::TABLE . '_log', [
-            'point_id' => $this->get('id'),
-            'status' => $i,
-            'date' => $this->get($i),
-        ]);
+        foreach ($this->statuses() as $i) {
+            if (
+                $this->get($i, false) &&
+                $i !== $this->getOrig('status')
+            ) {
+                DB::start()->upsert(static::TABLE . '_log', [
+                    'point_id' => $this->get('id'),
+                    'status' => $i,
+                    'date' => $this->get($i),
+                ]);
+            }
+        }
 
         foreach ($this->fields as $f)
             DB::start()->upsert(static::TABLE . '_params', [
@@ -82,6 +85,16 @@ abstract class Cfg
     {
         return $this->get('params.name', false) ?:
             strtoupper($this->get('name', ''));
+    }
+
+    public function statusesCnt()
+    {
+        return (int)$this->get('params.statuses', 2);
+    }
+
+    public function statuses()
+    {
+        return range(0, $this->statusesCnt() - 1);
     }
 
     protected static function sort(array &$data): void
