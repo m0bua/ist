@@ -4,12 +4,16 @@ include '../bootstrap.php';
 
 use Helpers\Html;
 
-if (isset($_GET['d']) || isset($_GET['u']))
-    exit(Dev::createPoint($_GET['d'] ?? $_GET['u'], $_GET));
-elseif ($_GET['format'] ?? null === 'json')
-    exit(Html::getClientsJson());
-elseif (isset($_GET['cfg']) && isset($_GET['name']))
-    exit(Dev::create($_GET['name'])->change($_GET['cfg']));
+if (isset($_GET['d']) || isset($_GET['u'])) {
+    Dev::createPoint($_GET['d'] ?? $_GET['u'], $_GET);
+    exit;
+} elseif ($_GET['format'] ?? null === 'json') {
+    exit;
+    Html::getClientsJson();
+} elseif (isset($_GET['cfg']) && isset($_GET['name'])) {
+    Dev::create($_GET['name'])->change($_GET['cfg']);
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html>

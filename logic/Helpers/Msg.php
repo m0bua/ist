@@ -112,7 +112,7 @@ class Msg
                         : str_replace('#', $param, $field);
                 elseif (strpos($field, '||') !== false) {
                     $ex = explode('||', $field);
-                    if (empty($ex[$param])) $msg = '';
+                    if (!isset($ex[$param])) $msg = '';
                     $field = $ex[$param] ?? '';
                 }
             } else $field = $params[$trim] ?? '';
