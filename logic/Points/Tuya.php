@@ -45,8 +45,15 @@ class Tuya implements Point
             'baseUrl' => $this->cfg->get('address')
         ]);
         $token = $tuya->token->get_new()->result->access_token ?? null;
-        $res = $tuya->devices($token)
-            ->get_details($this->cfg->get('params.cli.dev'))->result;
+        $dev = $tuya->devices($token)
+            ->get_details($this->cfg->get('params.cli.dev'));
+
+        if (empty($dev->result)) {
+            echo ($dev->msg ?? json_encode($dev)) . "\n";
+            return;
+        }
+
+        $res = $dev->result;
         $valArr = array_combine(
             array_column($res->status, 'code'),
             array_column($res->status, 'value')
