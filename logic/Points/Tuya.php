@@ -2,7 +2,7 @@
 
 namespace Points;
 
-use tuyapiphp\TuyaApi;
+use Helpers\TuyaApi;
 
 use Dev;
 use Helpers\{Helper, Msg};
@@ -39,27 +39,9 @@ class Tuya implements Point
 
     private function test()
     {
-        $tuya = new TuyaApi([
-            'accessKey' => $this->cfg->get('params.cli.id'),
-            'secretKey' => $this->cfg->get('params.cli.secret'),
-            'baseUrl' => $this->cfg->get('address')
-        ]);
-        $token = $tuya->token->get_new()->result->access_token ?? null;
-        $dev = $tuya->devices($token)
-            ->get_details($this->cfg->get('params.cli.dev'));
+        $res = TuyaApi::get($this->cfg->get('address'), $this->cfg->get('wait'));
 
-        if (empty($dev->result)) {
-            echo ($dev->msg ?? json_encode($dev)) . "\n";
-            return;
-        }
-
-        $res = $dev->result;
-        $valArr = array_combine(
-            array_column($res->status, 'code'),
-            array_column($res->status, 'value')
-        );
-
-        $v = $res->online ? ($valArr['cur_voltage'] ?? 0) / 10 : 0;
+        $v = $res->online ? ($res->status['cur_voltage'] ?? 0) / 10 : 0;
         $s = $this->cfg->get('status');
         $vp = json_decode($this->cfg->get('params.voltage', '{}'));
         $sCnt = $this->cfg->statusesCnt();

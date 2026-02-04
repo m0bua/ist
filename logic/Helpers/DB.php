@@ -3,6 +3,7 @@
 namespace Helpers;
 
 use PDO;
+use DateTime;
 
 class DB
 {
@@ -49,14 +50,14 @@ class DB
     public function upsert(string $table, array $data)
     {
         $cols = array_column(self::start()->all("DESCRIBE $table"), 'Field');
-        $data = array_filter($data, function ($k) use ($cols) {
-            return in_array($k, $cols, true);
-        }, ARRAY_FILTER_USE_KEY);
+        $data = array_filter($data, fn($k) =>
+        in_array($k, $cols, true), ARRAY_FILTER_USE_KEY);
         if (empty($data)) return;
 
-        $data = array_map(function ($i) {
-            if (is_bool($i)) $i = (int)$i;
-            return $i;
+        $data = array_map(fn($i) => match (true) {
+            is_object($i) && get_class($i) == DateTime::class => $i->format('Y-m-d H:i:s'),
+            is_bool($i) => (int)$i,
+            default => $i
         }, $data);
 
         $keys = array_keys($data);
