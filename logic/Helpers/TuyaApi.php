@@ -29,13 +29,16 @@ class TuyaApi extends Api
                 array_column($res->status, 'code'),
                 array_column($res->status, 'value')
             );
+            $res = json_encode($res);
 
             DB::start()->upsert('tuya_log', [
                 't_id' => $id,
-                'data' => json_encode($res),
+                'data' => $res,
                 'date' => date_create(),
             ]);
-        } else $res = json_decode($item['data']);
+        } else $res = $item['data'];
+
+        $res = json_decode($res);
 
         return $res;
     }
