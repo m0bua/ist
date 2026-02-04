@@ -9,8 +9,12 @@ if (isset($_GET['d']) || isset($_GET['u'])) {
     exit;
 } elseif ($_GET['format'] ?? null === 'json') {
     exit(Html::getClientsJson());
-} elseif (isset($_GET['cfg']) && isset($_GET['name']))
+} elseif (isset($_GET['cfg']) && isset($_GET['name'])) {
     exit(Dev::create($_GET['name'])->change($_GET['cfg']));
+} elseif (isset($_GET['chart'])) {
+    include '../view/tuya.php';
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html>

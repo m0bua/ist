@@ -3,6 +3,7 @@
 namespace Helpers;
 
 use Auth, Dev;
+use Points\Tuya;
 
 class Html
 {
@@ -27,14 +28,42 @@ class Html
         ];
 
         if (!empty(Auth::clients())) $children[] = ['tag' => 'th', 'text' => 'Update'];
-
-
         $response = json_encode([['tag' => 'br'], ['tag' => 'table', 'children' => array_merge([
             ['tag' => 'tr', 'children' => $children]
         ], self::dataJsonRows($configs))]]);
 
         header('Content-Type: application/json; charset=utf-8');
         return $response;
+    }
+
+    public static function getVoltage()
+    {
+        $dev = array_filter(Dev::all(), fn($i) => $i->get('name') == $_GET['chart']
+            && in_array($i->get('class'), ['Tuya']));
+
+        if (empty($dev)) return null;
+        $dev = reset($dev);
+        $id = $dev->get('address');
+
+        $from = date_create($_GET['from'] ?? '1:0:0')->format('Y-m-d H:i:s');
+        $to =  date_create($_GET['to'] ?? 'now')->format('Y-m-d H:i:s');
+
+        $where = "t_id = $id";
+        $where .= " AND date >= '$from'";
+        $where .= " AND date <= '$to'";
+
+        $sql = "SELECT date, data->'$.online' as online, data->'$.status.voltage' / 10 as voltage";
+        $sql .= " FROM tuya_log WHERE $where ORDER BY date";
+
+        $values = array_map(fn($i) => [strtotime($i['date']), $i['online'] == 'true'
+            ? $i['voltage'] : 0], DB::start()->all($sql));
+
+        return [
+            'name' => str_replace('_', ' ', $dev->get('params.name')),
+            'values' => $values,
+            'from' => $from,
+            'to' => $to,
+        ];
     }
 
     protected static function dataJsonRows(array $configs): array
