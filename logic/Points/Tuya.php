@@ -41,7 +41,8 @@ class Tuya implements Point
     {
         $res = TuyaApi::get($this->cfg->get('address'), $this->cfg->get('wait'));
 
-        $v = $res->online ? ($res->status['cur_voltage'] ?? 0) / 10 : 0;
+        $field = $this->cfg->get('params.voltage.field', 'voltage');
+        $v = $res->online ? ($res->status->$field ?? 0) / 10 : 0;
         $s = $this->cfg->get('status');
         $vp = json_decode($this->cfg->get('params.voltage', '{}'));
         $sCnt = $this->cfg->statusesCnt();
