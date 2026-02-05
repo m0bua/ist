@@ -68,6 +68,10 @@ if (isset($_GET['d']) || isset($_GET['u'])) {
             border: none;
             border-radius: 1em;
         }
+
+        a {
+            color: lightgray;
+        }
     </style>
     <script>
         let get = new URLSearchParams((new URL(window.location.href)).search),
@@ -99,6 +103,7 @@ if (isset($_GET['d']) || isset($_GET['u'])) {
         }
 
         function element(el, data, replace = true) {
+            console.log(el, data);
             Array.prototype.forEach.call(data, function(item, key) {
                 if (item.tag != undefined) {
                     let exist = el.children[key] != undefined && el.children[key].tagName === item.tag.toUpperCase(),

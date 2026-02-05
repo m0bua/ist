@@ -3,22 +3,18 @@
 namespace Helpers;
 
 use Auth, Dev;
-use Points\Tuya;
 
 class Html
 {
+    const CHART_CONFIGS = ['Tuya'];
+
     public static function getClientsJson(): string
     {
-        foreach (Dev::all() as $item)
-            $configs[$item->name()] = $item;
-
-        if (empty($configs))
-            return json_encode([]);
-
+        foreach (Dev::all() as $item) $configs[$item->name()] = $item;
+        if (empty($configs)) return json_encode([]);
         ksort($configs);
 
         $maxKeys = max(array_map(fn($i) => count(explode('_', $i)), array_keys($configs)));
-
         $children = [
             ['tag' => 'th', 'params' => ['colspan' => $maxKeys], 'text' => 'Device'],
             ['tag' => 'th', 'text' => 'Status'],
@@ -26,7 +22,6 @@ class Html
             ['tag' => 'th', 'text' => 'Last On'],
             ['tag' => 'th', 'text' => 'Last Off'],
         ];
-
         if (!empty(Auth::clients())) $children[] = ['tag' => 'th', 'text' => 'Update'];
         $response = json_encode([['tag' => 'br'], ['tag' => 'table', 'children' => array_merge([
             ['tag' => 'tr', 'children' => $children]
@@ -36,33 +31,76 @@ class Html
         return $response;
     }
 
-    public static function getVoltage()
+    public static function getVoltageData(array $params, array $fields = [])
     {
-        $dev = array_filter(Dev::all(), fn($i) => $i->get('name') == $_GET['chart']
-            && in_array($i->get('class'), ['Tuya']));
+        $dev = array_filter(Dev::all(), fn($i) => $i->get('name') == $params['chart']
+            && in_array($i->get('class'), self::CHART_CONFIGS));
+        if (empty($dev)) {
+            header('Location: /');
+            exit;
+        }
 
-        if (empty($dev)) return null;
         $dev = reset($dev);
-        $id = $dev->get('address');
+        $field = $dev->get('params.voltage.field', 'voltage');
+        $select = implode(', ', array_merge([
+            "date",
+            "data->'$.online' as online",
+            "data->'$.status.$field'/10 as voltage"
+        ], array_map(fn($i) => "data->'$.status.$i' as $i", $fields)));
+        $curWhere = $where = "t_id = " . $dev->get('address');
+        $from = date_create($params['from'] ?? '0:0')->format('Y-m-d H:i');
+        $to =  date_create($params['to'] ?? '23:59')->format('Y-m-d H:i');
+        $where .= " AND date >= '$from' AND date <= '$to'";
+        $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
+        $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]));
+        $layers[] = ['hidden' => true];
+        $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
+        $layers[] = ['title' => 'Voltage', 'data' => array_map(fn($i) => [
+            strtotime($i['date']),
+            $i['online'] == 'true' ? $i['voltage'] : 0
+        ], $entries)];
+        foreach ($fields as $f) $layers[] = [
+            'title' => ucfirst($f),
+            'data' => array_map(fn($i) =>
+            [strtotime($i['date']), $i[$f]], $entries)
+        ];
 
-        $from = date_create($_GET['from'] ?? '1:0:0')->format('Y-m-d H:i:s');
-        $to =  date_create($_GET['to'] ?? 'now')->format('Y-m-d H:i:s');
-
-        $where = "t_id = $id";
-        $where .= " AND date >= '$from'";
-        $where .= " AND date <= '$to'";
-
-        $sql = "SELECT date, data->'$.online' as online, data->'$.status.voltage' / 10 as voltage";
-        $sql .= " FROM tuya_log WHERE $where ORDER BY date";
-
-        $values = array_map(fn($i) => [strtotime($i['date']), $i['online'] == 'true'
-            ? $i['voltage'] : 0], DB::start()->all($sql));
+        $qChart = ['chart' => $dev->get('name')];
+        [$f] = explode(' ', $from);
+        [$t] = explode(' ', $to);
 
         return [
             'name' => str_replace('_', ' ', $dev->get('params.name')),
-            'values' => $values,
+            'cfg' => $dev->get('name'),
             'from' => $from,
             'to' => $to,
+            'current' => $cur,
+            'color' => match (true) {
+                $cur['online'] !== 'true' => 'red',
+                $dev->get('params.voltage.min', $cur['voltage']) > $cur['voltage'] => 'yellow',
+                $dev->get('params.voltage.max', $cur['voltage']) < $cur['voltage'] => 'blue',
+                default => 'green',
+            },
+            'cfg' => $dev->get('name'),
+            'urls' => [
+                'now' => http_build_query($qChart),
+                'back' => http_build_query(array_merge($qChart, [
+                    'from' => date_create($f)->modify('-1 day')->setTime(0, 0)->format('Y-m-d H:i'),
+                    'to' => date_create($f)->modify('-1 day')->setTime(23, 59)->format('Y-m-d H:i'),
+                ])),
+                'fwd' => http_build_query(array_merge($qChart, [
+                    'from' => date_create($t)->modify('+1 day')->setTime(0, 0)->format('Y-m-d H:i'),
+                    'to' => date_create($t)->modify('+1 day')->setTime(23, 59)->format('Y-m-d H:i'),
+                ])),
+            ],
+            'chart' => [
+                'canvas' => '#chart canvas',
+                'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
+                'dataSuffix' => empty($fields) ? ' V' : null,
+                'dataType' => 'float',
+                'locale' => 'uk-UA',
+                'layers' => $layers,
+            ],
         ];
     }
 
@@ -73,7 +111,6 @@ class Html
             array_combine(array_keys($configs), array_keys($configs))
         );
         $max = max(array_map(fn($i) => count($i), $split));
-
         foreach ($configs as $dev => $cfg) {
             $status = $cfg->get('status');
             $children = [];
@@ -84,14 +121,25 @@ class Html
                     return $res ?? false;
                 });
                 $blockMax = max(array_map(fn($i) => count($i), $same));
+                $name = strtoupper($name);
+
+                if (
+                    in_array($cfg->get('class'), self::CHART_CONFIGS)
+                    && $k + 1 == $blockMax
+                ) $name = [[
+                    'tag' => 'a',
+                    'text' => $name,
+                    'params' => ['href' => '?chart=' . $cfg->get('name')]
+                ]];
+                else $name = [['tag' => 'span', 'text' => $name]];
 
                 if (array_search($dev, array_keys($same)) === 0)
-                    $children[] = ['tag' => 'td', 'params' => [
+                    $children[] = ['tag' => 'td', 'children' => $name, 'params' => [
                         'rowspan' => count($same),
                         'colspan' => count($split[$dev]) === $blockMax
                             && $k === array_key_last($split[$dev])
                             ? $max + 1 - count($split[$dev]) : 1,
-                    ], 'text' => strtoupper($name)];
+                    ]];
             }
 
             if (count($split[$dev]) < $blockMax)

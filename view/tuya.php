@@ -1,13 +1,6 @@
 <?php
 
-use Helpers\Html;
-
-$data = Html::getVoltage();
-
-if (empty($data['values'])) {
-    header('Location: /');
-    exit;
-}
+$data = \Helpers\Html::getVoltageData($_GET);
 
 ?>
 
@@ -19,6 +12,57 @@ if (empty($data['values'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Clients</title>
     <style>
+        body {
+            background-color: #161616;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            color: lightgray;
+            top: 0;
+        }
+
+        section {
+            width: 80vw;
+            margin: 3em auto;
+        }
+
+        input,
+        button {
+            background-color: #161616;
+            color: lightgray;
+            border-color: #555;
+        }
+
+        #current #status {
+            width: fit-content;
+            max-width: 80vw;
+            margin: 1em auto;
+            padding: 1.5em 5em;
+            text-align: center;
+            border-radius: 1em;
+        }
+
+        #current #status p {
+            margin: 0;
+        }
+
+        #current #status p+p {
+            margin-top: 1em;
+        }
+
+        #status {
+            width: auto;
+            margin: 1em auto;
+            padding: 10px 30px;
+            text-align: center;
+        }
+
+        #empty {
+            color: red;
+            text-align: center;
+            margin-top: 3em;
+        }
+
         #dates {
             width: auto;
             margin: 1em auto;
@@ -27,15 +71,78 @@ if (empty($data['values'])) {
 
         #dates * {
             margin: auto 1em;
+            padding: 5px;
         }
 
-        #chart {
-            width: 80vw;
-            height: 50vh;
-            margin: 1em auto;
-            border: 2px dotted black;
+        #dates a {
+            color: #777;
+            text-decoration: none;
+        }
+
+        #dates input[type=submit],
+        #dates input[type=button] {
+            padding: 5px 1.5em;
+        }
+
+        #dates span {
+            margin: 0;
+            padding: 0;
+        }
+
+        #chart canvas {
+            width: 100%;
+            aspect-ratio: 4/3;
+            margin: 3em auto 1em;
             border-radius: 5px;
             display: block;
+        }
+
+        @media screen and (max-width: 700px) {
+            #chart canvas {
+                aspect-ratio: 3/4;
+            }
+
+            #dates {
+                margin: 1em 3em;
+                position: relative;
+            }
+
+            #dates * {
+                display: block;
+                margin: 1em auto;
+            }
+
+            #dates a {
+                position: absolute;
+                top: 50%;
+                transform: translate(0, -100%);
+            }
+
+            #dates a:first-child {
+                left: -2em;
+            }
+
+            #dates a:last-child {
+                right: -2em;
+            }
+
+            #dates span {
+                display: none;
+            }
+        }
+
+        @media screen and (max-width: 300px) {
+            #dates {
+                margin: 1em 1em;
+            }
+
+            #dates a:first-child {
+                left: 0;
+            }
+
+            #dates a:last-child {
+                right: 0;
+            }
         }
     </style>
     <script src="chart.min.js"></script>
@@ -43,31 +150,34 @@ if (empty($data['values'])) {
 
 <body id="body">
 
-    <form id="dates" action="/" method="get">
-        <input name="chart" type="hidden" value="<?= $_GET['chart'] ?? '' ?>">
-        <input name="from" type="datetime-local" value="<?= $data['from'] ?>">
-        <input name="to" type="datetime-local" value="<?= $data['to'] ?>">
-        <button>Go</button>
-    </form>
+    <section id="current">
+        <div id="status" style="background-color:<?= $data['color'] ?>">
+            <p style="font-size:32px"><?= $data['current']['voltage'] ?> V</p>
+            <p><?= $data['current']['date'] ?></p>
+        </div>
+    </section>
 
-    <canvas id="chart"></canvas>
-    <script>
-        let chart = new Chart({
-            "canvas": '#chart',
-            "title": "<?= $data['name'] ?? 'Chart' ?>",
-            "dataType": "integer",
-            "dataSuffix": " V",
-            "locale": "uk-UA",
-            "layers": [{
-                "hidden": true
-            }, {
-                "title": "Voltage",
-                "data": <?= json_encode($data['values']) ?>
-            }]
-        });
-        chart.render();
-    </script>
+    <section id="chart">
+        <form id="dates" action="/" method="get">
+            <a href="?<?= $data['urls']['back'] ?>">🢀</a>
+            <input type="button" value="Now" onclick="window.location.href='?<?= $data['urls']['now'] ?>'">
+            <input name="chart" type="hidden" value="<?= $data['cfg'] ?>">
+            <input name="from" type="datetime-local" value="<?= $data['from'] ?>">
+            <span>-</span>
+            <input name="to" type="datetime-local" value="<?= $data['to'] ?>">
+            <input type="submit" value="Go">
+            <a href="?<?= $data['urls']['fwd'] ?>">🢂</a>
+        </form>
 
+        <?php if (empty($data['chart']['layers']['1']['data'])): ?>
+            <div id="empty">NO data</div>
+        <?php else: ?>
+            <canvas></canvas>
+            <script>
+                (new Chart(<?= json_encode($data['chart']) ?>)).render();
+            </script>
+        <?php endif ?>
+    </section>
 </body>
 
 </html>
