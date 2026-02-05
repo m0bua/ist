@@ -31,11 +31,7 @@ class TuyaApi extends Api
             );
             $res = json_encode($res);
 
-            DB::start()->upsert('tuya_log', [
-                't_id' => $id,
-                'data' => $res,
-                'date' => date_create(),
-            ]);
+            DB::start()->upsert('tuya_log', ['t_id' => $id, 'data' => $res]);
         } else $res = $item['data'];
 
         $res = json_decode($res);

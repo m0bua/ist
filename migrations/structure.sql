@@ -3,11 +3,11 @@ SET foreign_key_checks = 1;
 SET sql_mode = REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY','');
 
 CREATE TABLE `auth` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `login` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL,
   `hash` varchar(40) COLLATE utf8mb4_unicode_ci NOT NULL,
   `auth` tinyint(1) DEFAULT '0',
-  `cli_id` int(11) DEFAULT NULL,
+  `cli_id` int DEFAULT NULL,
   `create_ip` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `last_login_ip` varchar(16) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created` datetime DEFAULT CURRENT_TIMESTAMP,
@@ -18,13 +18,13 @@ CREATE TABLE `auth` (
 
 
 CREATE TABLE `points` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `class` enum('Request','Income','Tuya') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `class` enum('Request','Income','Tuya') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `active` tinyint(1) NOT NULL DEFAULT '0',
   `status` tinyint(1) NOT NULL DEFAULT '0',
   `address` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `tg_id` int(11) DEFAULT NULL,
+  `tg_id` int DEFAULT NULL,
   `updated` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_class` (`name`,`class`),
@@ -34,9 +34,9 @@ CREATE TABLE `points` (
 
 
 CREATE TABLE `points_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `point_id` int(11) NOT NULL,
-  `status` tinyint(4) NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `point_id` int NOT NULL,
+  `status` tinyint NOT NULL,
   `date` datetime NOT NULL ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `point_id` (`point_id`),
@@ -45,9 +45,9 @@ CREATE TABLE `points_log` (
 
 
 CREATE TABLE `points_params` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `point_id` int(11) NOT NULL,
-  `name` enum('name','msgPattern','msgHeaderPattern','msgIpPattern','msgTextPattern','dateFormat','dateDiffFormat','wait','tries','timeout','statuses','showIp','cli','voltage') COLLATE utf8mb4_unicode_ci NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `point_id` int NOT NULL,
+  `name` enum('name','msgPattern','msgHeaderPattern','msgIpPattern','msgTextPattern','dateFormat','dateDiffFormat','wait','tries','timeout','statuses','showIp','voltage') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `value` text COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `point_id_name` (`point_id`,`name`),
@@ -56,30 +56,30 @@ CREATE TABLE `points_params` (
 
 
 CREATE TABLE `tg` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `chat` bigint(20) NOT NULL,
-  `botId` bigint(20) NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `chat` bigint NOT NULL,
+  `botId` bigint NOT NULL,
   `botKey` varchar(42) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 CREATE TABLE `tuya` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `device` varchar(22) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `baseUrl` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `accessKey` varchar(20) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `secretKey` varchar(34) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `device` varchar(22) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `baseUrl` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `accessKey` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `secretKey` varchar(34) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `dev_id` (`device`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 CREATE TABLE `tuya_log` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `t_id` int(11) NOT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `t_id` int NOT NULL,
+  `date` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `data` json NOT NULL,
-  `date` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `t_id` (`t_id`),
   CONSTRAINT `tuya_log_ibfk_1` FOREIGN KEY (`t_id`) REFERENCES `tuya` (`id`)
@@ -87,8 +87,8 @@ CREATE TABLE `tuya_log` (
 
 
 CREATE TABLE `user_points` (
-  `user_id` int(11) NOT NULL,
-  `point_id` int(11) NOT NULL,
+  `user_id` int NOT NULL,
+  `point_id` int NOT NULL,
   `admin` tinyint(1) NOT NULL DEFAULT '0',
   UNIQUE KEY `user_point` (`user_id`,`point_id`),
   KEY `user_id` (`user_id`),
