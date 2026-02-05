@@ -28,7 +28,7 @@ $data = \Helpers\Html::getVoltageData($_GET);
 
         input,
         button {
-            background-color: #161616;
+            background-color: #333;
             color: lightgray;
             border-color: #555;
         }
@@ -148,11 +148,11 @@ $data = \Helpers\Html::getVoltageData($_GET);
     <script src="chart.min.js"></script>
 </head>
 
-<body id="body">
+<body id="body" class="dark">
 
     <section id="current">
         <div id="status" style="background-color:<?= $data['color'] ?>">
-            <h1><?= $data['current']['voltage'] ?> V</h1>
+            <h1><?= $data['current']['voltage'] ?>V</h1>
             <p>Updated at <?= $data['current']['date'] ?></p>
         </div>
     </section>
@@ -170,11 +170,44 @@ $data = \Helpers\Html::getVoltageData($_GET);
         </form>
 
         <?php if (empty($data['chart']['layers']['1']['data'])): ?>
-            <div id="empty">NO data</div>
+            <div id="empty">No data!</div>
         <?php else: ?>
             <canvas></canvas>
             <script>
-                (new Chart(<?= json_encode($data['chart']) ?>)).render();
+                let c = new Chart(<?= json_encode($data['chart']) ?>);
+                c.dateStyles = {
+                    year: {
+                        month: 'numeric',
+                        day: 'numeric'
+                    },
+                    month: {
+                        month: 'numeric',
+                        day: 'numeric'
+                    },
+                    day: {
+                        hour: 'numeric',
+                        hour12: false
+                    },
+                    hour: {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: false
+                    },
+                    minute: {
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: false
+                    },
+                    tooltip: {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: false
+                    }
+                };
+                c.render();
             </script>
         <?php endif ?>
     </section>

@@ -35,10 +35,7 @@ class Html
     {
         $dev = array_filter(Dev::all(), fn($i) => $i->get('name') == $params['chart']
             && in_array($i->get('class'), self::CHART_CONFIGS));
-        if (empty($dev)) {
-            header('Location: /');
-            exit;
-        }
+        if (empty($dev)) exit(header('location: /'));
 
         $dev = reset($dev);
         $field = $dev->get('params.voltage.field', 'voltage');
@@ -57,7 +54,7 @@ class Html
         $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
         $layers[] = ['title' => 'Voltage', 'data' => array_map(fn($i) => [
             strtotime($i['date']),
-            $i['online'] == 'true' ? $i['voltage'] : 0
+            $i['online'] == 'true' ? $i['voltage'] : 0,
         ], $entries)];
         foreach ($fields as $f) $layers[] = [
             'title' => ucfirst($f),
@@ -96,9 +93,8 @@ class Html
             'chart' => [
                 'canvas' => '#chart canvas',
                 'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
-                'dataSuffix' => empty($fields) ? ' V' : null,
+                'dataSuffix' => empty($fields) ? 'V' : null,
                 'dataType' => 'float',
-                'locale' => 'uk-UA',
                 'layers' => $layers,
             ],
         ];
