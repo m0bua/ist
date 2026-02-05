@@ -1,5 +1,6 @@
 <?php
 
+date_default_timezone_set('Europe/Kyiv');
 defined('ROOT') or define('ROOT', __DIR__);
 defined('IS_WEB') or define('IS_WEB', php_sapi_name() != 'cli');
 require ROOT . '/vendor/autoload.php';

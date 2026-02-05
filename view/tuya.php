@@ -42,11 +42,11 @@ $data = \Helpers\Html::getVoltageData($_GET);
             border-radius: 1em;
         }
 
-        #current #status p {
+        #current #status * {
             margin: 0;
         }
 
-        #current #status p+p {
+        #current #status *+p {
             margin-top: 1em;
         }
 
@@ -91,7 +91,7 @@ $data = \Helpers\Html::getVoltageData($_GET);
 
         #chart canvas {
             width: 100%;
-            aspect-ratio: 4/3;
+            aspect-ratio: 16/7;
             margin: 3em auto 1em;
             border-radius: 5px;
             display: block;
@@ -152,8 +152,8 @@ $data = \Helpers\Html::getVoltageData($_GET);
 
     <section id="current">
         <div id="status" style="background-color:<?= $data['color'] ?>">
-            <p style="font-size:32px"><?= $data['current']['voltage'] ?> V</p>
-            <p><?= $data['current']['date'] ?></p>
+            <h1><?= $data['current']['voltage'] ?> V</h1>
+            <p>Updated at <?= $data['current']['date'] ?></p>
         </div>
     </section>
 

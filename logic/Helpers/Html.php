@@ -52,7 +52,7 @@ class Html
         $to =  date_create($params['to'] ?? '23:59')->format('Y-m-d H:i');
         $where .= " AND date >= '$from' AND date <= '$to'";
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
-        $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]));
+        $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
         $layers[] = ['hidden' => true];
         $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
         $layers[] = ['title' => 'Voltage', 'data' => array_map(fn($i) => [
