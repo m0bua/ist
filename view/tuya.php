@@ -22,8 +22,13 @@ $data = \Helpers\Html::getVoltageData($_GET);
         }
 
         section {
+            position: relative;
             width: 80vw;
             margin: 3em auto;
+        }
+
+        a {
+            color: #777;
         }
 
         input,
@@ -31,6 +36,12 @@ $data = \Helpers\Html::getVoltageData($_GET);
             background-color: #333;
             color: lightgray;
             border-color: #555;
+        }
+
+        #back {
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         #current #status {
@@ -75,7 +86,6 @@ $data = \Helpers\Html::getVoltageData($_GET);
         }
 
         #dates a {
-            color: #777;
             text-decoration: none;
         }
 
@@ -150,7 +160,9 @@ $data = \Helpers\Html::getVoltageData($_GET);
 
 <body id="body" class="dark">
 
+
     <section id="current">
+        <a id="back" href="/">🡴 Back</a>
         <div id="status" style="background-color:<?= $data['color'] ?>">
             <h1><?= $data['current']['voltage'] ?>V</h1>
             <p>Updated at <?= $data['current']['date'] ?></p>
@@ -160,7 +172,7 @@ $data = \Helpers\Html::getVoltageData($_GET);
     <section id="chart">
         <form id="dates" action="/" method="get">
             <a href="?<?= $data['urls']['back'] ?>">🢀</a>
-            <input type="button" value="Now" onclick="window.location.href='?<?= $data['urls']['now'] ?>'">
+            <input type="button" value="Today" onclick="window.location.href='?<?= $data['urls']['now'] ?>'">
             <input name="chart" type="hidden" value="<?= $data['cfg'] ?>">
             <input name="from" type="datetime-local" value="<?= $data['from'] ?>">
             <span>-</span>
