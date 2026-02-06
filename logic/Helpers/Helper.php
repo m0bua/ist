@@ -73,8 +73,10 @@ class Helper
         }
 
         if (is_numeric($data)) $data = (float)$data;
+        if (is_string($data))
+            $data = @json_decode($data) ?? $data;
 
-        return @json_decode($data) ?? $data;
+        return $data;
     }
 
     public static function ip(): string

@@ -21,7 +21,18 @@
             Back
         </a>
         <div id="status" style="background-color:dark<?= $data->dev->class()::COLORS[$data->dev->get('status')] ?>">
-            <h1><?= $data->current->online === 'true' ? $data->current->voltage . 'V' : 'Off' ?></h1>
+            <h1>
+                <?php if ($data->current->online === 'true'): ?>
+                    <?php foreach ($data->current->fields as $k => $i) if (!empty($i)): ?>
+                        <p>
+                            <?php if (isset($i->name)): ?><?= $i->name ?>:<?php endif ?>
+                            <?= $i->value ?><?php if (isset($i->suffix)): ?><?= $i->suffix ?><?php endif ?>
+                        </p>
+                    <?php endif ?>
+                <?php else: ?>
+                    Off
+                <?php endif ?>
+            </h1>
             <p>Updated at <?= $data->current->date ?></p>
         </div>
         <?php foreach ($data->dev->get('dates') as $k => $i): ?>
@@ -58,9 +69,8 @@
 
         <?php if (empty($data->ranges)): ?>
             <div id="empty">No data!</div>
-        <?php else: ?>
+        <?php else: ?><br>
             <?php foreach ($data->ranges as $k => $r): ?>
-                <br>
                 <center style="color:<?= $data->chart->colors[$k] ?>">
                     <?= $r->title ?>: <?= $r->min ?> - <?= $r->max ?><?php if (!empty($r->on)): ?>,
                     on: <?= $r->on ?><?php endif ?><?php if (!empty($r->off)): ?>,

@@ -38,12 +38,16 @@ class Html
         if (empty($dev)) exit(header('location: /'));
         $dev = reset($dev);
 
-        $field = $dev->get('params.voltage.field', 'voltage');
-        $select = implode(', ', array_merge([
+        $fields = $dev->class()::fields($dev, $fields);
+        $suffixes = array_filter(array_unique(array_map(fn($i) =>
+        trim($i->suffix ?? null), $fields)), fn($i) => !empty($i));
+        $select = implode(', ', [
             "date",
             "data->'$.online' as online",
-            "data->'$.status.$field'/10 as voltage"
-        ], array_map(fn($i) => "data->'$.status.$i' as $i", $fields)));
+            'JSON_OBJECT(' . implode(', ', array_map(fn($i) =>
+            "'$i->key', $i->sql", $fields)) . ') as fields'
+        ]);
+
         $curWhere = $where = "t_id = " . $dev->get('address');
         $from = date_create($params['from'] ?? '0:0')->format('Y-m-d H:i');
         $to =  date_create($params['to'] ?? '23:59')->format('Y-m-d H:i');
@@ -51,22 +55,32 @@ class Html
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
         if (empty($cur)) exit(header('location: /'));
+        $f = json_decode($cur['fields'], true);
+        $cur['fields'] = array_map(
+            fn($i, $k) => (object)array_merge((array)$i, ['value' => $f[$k]]),
+            $fields,
+            array_keys($fields)
+        );
+
         $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
-        if (empty($fields)) $layers[] = (object)['title' => 'Voltage', 'data' => array_map(fn($i) => [
-            strtotime($i['date']),
-            $i['online'] == 'true' ? $i['voltage'] : 0,
-        ], $entries)];
-        else foreach ($fields as $f) $layers[] = (object)[
-            'title' => ucfirst($f),
-            'data' => array_map(fn($i) =>
-            [strtotime($i['date']), $i[$f]], $entries)
-        ];
+        foreach ($fields as $f) {
+            $title = ucfirst($f->key);
+            if (count($suffixes) > 1 && isset($f->suffix)) $title .= " ($f->suffix)";
+            $layers[] = (object)[
+                'title' => $title,
+                'data' => array_map(fn($i) =>
+                [strtotime($i['date']), $i['online'] == 'true'
+                    ? Helper::getArrayKey($i, "fields.$f->key") : 0], $entries)
+            ];
+        }
 
         $qChart = ['chart' => $dev->get('name')];
         [$f] = explode(' ', $from);
         [$t] = explode(' ', $to);
 
         foreach ($layers as $l) if (!empty($l->data)) {
+            $on = date_create();
+            $off = date_create();
             $vals = array_filter($l->data, fn($i) => $i[1] > 0);
             foreach ($l->data as $i) {
                 if ($i[1] > 0) {
@@ -81,16 +95,16 @@ class Html
                     unset($dOn);
                 }
             }
-            if (isset($dOn)) $on = $on->add($dOn->diff(date_create('@' . $i[0])));
-            if (isset($dOff)) $off = $off->add($dOff->diff(date_create('@' . $i[0])));
-            $on = date_create()->diff($on);
-            $off = date_create()->diff($off);
+            if (isset($dOn)) $on = ($on ?? date_create())->add($dOn->diff(date_create('@' . $i[0])));
+            if (isset($dOff)) $off = ($off ?? date_create())->add($dOff->diff(date_create('@' . $i[0])));
+            $onR = date_create()->diff($on ?? date_create())->format('%ad %H:%I');
+            $offR = date_create()->diff($off ?? date_create())->format('%ad %H:%I');
             if (!empty($vals)) $ranges[] = (object)[
                 'title' => $l->title,
                 'min' => min(array_column($vals, '1')),
                 'max' => max(array_column($vals, '1')),
-                'on' => ($on->invert ?? true) ? 0 : $on->format('%ad %H:%I'),
-                'off' => ($off->invert ?? true) ? 0 : $off->format('%ad %H:%I'),
+                'on' => $onR == '0d 00:00' ? 0 : $onR,
+                'off' => $offR == '0d 00:00' ? 0 : $offR,
             ];
         }
 
@@ -114,7 +128,7 @@ class Html
             'chart' => (object)[
                 'canvas' => '#chart canvas',
                 'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
-                'dataSuffix' => empty($fields) ? 'V' : null,
+                'dataSuffix' => count($suffixes) === 1 ? reset($suffixes) : null,
                 'dataType' => 'float',
                 'layers' => $layers ?? [],
                 'colors' => ['#4CAF50', '#FEB019', '#FF4560', '#008FFB', '#775DD0', '#00E396', '#546E7A']
