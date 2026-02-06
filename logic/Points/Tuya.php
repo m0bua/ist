@@ -40,11 +40,12 @@ class Tuya implements Point
     private function test()
     {
         $res = TuyaApi::get($this->cfg->get('address'), $this->cfg->get('wait'));
+        if (empty($res)) return;
 
-        $field = $this->cfg->get('params.voltage.field', 'voltage');
-        $v = $res->online ? ($res->status->$field ?? 0) / 10 : 0;
         $s = $this->cfg->get('status');
         $vp = json_decode($this->cfg->get('params.voltage', '{}'));
+        $field = $vp->field ?? 'voltage';
+        $v = $res->online ? ($res->status->$field ?? 0) / 10 : 0;
         $sCnt = $this->cfg->statusesCnt();
         $this->status = match (true) {
             !$res->online => 0,
