@@ -80,7 +80,7 @@ class Html
             'current' => (object)$cur,
             'from' => $from,
             'to' => $to,
-            'ranges' => (object)($ranges ?? []),
+            'ranges' => $ranges ?? [],
             'urls' => (object)[
                 'now' => http_build_query($qChart),
                 'back' => http_build_query(array_merge($qChart, [
