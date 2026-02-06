@@ -1,0 +1,160 @@
+ body {
+     background-color: #161616;
+     height: 100%;
+     margin: 0;
+     padding: 0;
+     color: lightgray;
+     top: 0;
+ }
+
+ section {
+     position: relative;
+     width: 80vw;
+     margin: 3em auto;
+ }
+
+ a {
+     color: #777;
+ }
+
+ input,
+ button {
+     background-color: #333;
+     color: lightgray;
+     border-color: #555;
+ }
+
+ center {
+     margin: .3em 0;
+ }
+
+ #back {
+     position: absolute;
+     top: -1.7em;
+     left: 0;
+ }
+
+ #back svg {
+     position: absolute;
+     top: .1em;
+     left: -1.2em;
+ }
+
+ #current #status {
+     width: fit-content;
+     max-width: 80vw;
+     margin: 1em auto;
+     padding: 1.5em 5em;
+     text-align: center;
+     border-radius: 1em;
+ }
+
+ #current #status * {
+     margin: 0;
+ }
+
+ #current #status *+p {
+     margin-top: 1em;
+ }
+
+ #status {
+     width: auto;
+     margin: 1em auto;
+     padding: 10px 30px;
+     text-align: center;
+ }
+
+ #empty {
+     color: red;
+     text-align: center;
+     margin-top: 3em;
+ }
+
+ #dates {
+     width: auto;
+     margin: 1em auto;
+     text-align: center;
+ }
+
+ #dates * {
+     margin: auto 1em;
+     padding: 5px;
+     line-height: 1;
+ }
+
+ #dates a {
+     display: inline-block;
+     text-decoration: none;
+     vertical-align: middle;
+ }
+
+ #dates a svg {
+     margin: 0;
+     padding: 0;
+ }
+
+ #dates input[type=submit],
+ #dates input[type=button] {
+     padding: 5px 1.5em;
+ }
+
+ #dates span {
+     margin: 0;
+     padding: 0;
+ }
+
+ #chart canvas {
+     width: 100%;
+     aspect-ratio: 16/7;
+     margin: 1em auto 1em;
+     border-radius: 5px;
+     display: block;
+ }
+
+ @media screen and (max-width: 980px) {
+     #chart canvas {
+         aspect-ratio: 3/4;
+     }
+
+     #dates {
+         margin: 1em 3em;
+         position: relative;
+     }
+
+     #dates * {
+         display: block;
+         margin: 1em auto;
+     }
+
+     #dates a {
+         position: absolute;
+         top: 50%;
+         transform: translate(0, -100%);
+     }
+
+     #dates a:first-child {
+         left: -2em;
+     }
+
+     #dates a:last-child {
+         right: -2em;
+     }
+
+     #dates span {
+         display: none;
+     }
+ }
+
+ @media screen and (max-width: 300px) {
+     #dates {
+         margin: 1em 1em;
+     }
+
+     #dates a:first-child {
+         left: 0;
+     }
+
+     #dates a:last-child {
+         right: 0;
+     }
+ }

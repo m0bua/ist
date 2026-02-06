@@ -10,6 +10,9 @@ use Parts\Point;
 
 class Tuya implements Point
 {
+    const STATUSES = ['off', 'on', 'low', 'high'];
+    const COLORS = ['red', 'green', 'goldenrod', 'blue'];
+
     protected Dev $cfg;
     protected int $status;
 

@@ -56,22 +56,25 @@ class Helper
     }
 
     public static function getArrayKey(
-        $array,
+        $data,
         ?string $field = null,
         $default = null
     ) {
-        if (is_null($field)) return $array;
-        if (isset($array[$field])) return $array[$field];
-        foreach (explode('.', $field) as $segment) {
-            if (is_string($array))
-                $array = json_decode($array, true) ?? $array;
+        if (is_null($field)) return $data;
+        if (isset($data[$field])) $data = $data[$field];
+        else foreach (explode('.', $field) as $segment) {
+            if (is_string($data))
+                $data = json_decode($data, true) ?? $data;
             if (
-                !is_array($array) ||
-                !array_key_exists($segment, $array)
+                !is_array($data) ||
+                !array_key_exists($segment, $data)
             ) return $default;
-            $array = $array[$segment];
+            $data = $data[$segment];
         }
-        return $array;
+
+        if (is_numeric($data)) $data = (float)$data;
+
+        return @json_decode($data) ?? $data;
     }
 
     public static function ip(): string

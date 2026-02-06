@@ -36,8 +36,8 @@ class Html
         $dev = array_filter(Dev::all(), fn($i) => $i->get('name') == $params['chart']
             && in_array($i->get('class'), self::CHART_CONFIGS));
         if (empty($dev)) exit(header('location: /'));
-
         $dev = reset($dev);
+
         $field = $dev->get('params.voltage.field', 'voltage');
         $select = implode(', ', array_merge([
             "date",
@@ -51,13 +51,12 @@ class Html
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
         if (empty($cur)) exit(header('location: /'));
-        $layers[] = ['hidden' => true];
         $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
-        $layers[] = ['title' => 'Voltage', 'data' => array_map(fn($i) => [
+        if (empty($fields)) $layers[] = ['title' => 'Voltage', 'data' => array_map(fn($i) => [
             strtotime($i['date']),
             $i['online'] == 'true' ? $i['voltage'] : 0,
         ], $entries)];
-        foreach ($fields as $f) $layers[] = [
+        else foreach ($fields as $f) $layers[] = [
             'title' => ucfirst($f),
             'data' => array_map(fn($i) =>
             [strtotime($i['date']), $i[$f]], $entries)
@@ -67,20 +66,22 @@ class Html
         [$f] = explode(' ', $from);
         [$t] = explode(' ', $to);
 
-        return [
-            'name' => str_replace('_', ' ', $dev->get('params.name')),
-            'cfg' => $dev->get('name'),
+        foreach ($layers as $l) if (!empty($l['data'])) {
+            $vals = array_filter(array_column($l['data'], '1'), fn($i) => $i > 0);
+            if (!empty($vals)) $ranges[] = (object)[
+                'title' => $l['title'],
+                'min' => min($vals),
+                'max' => max($vals)
+            ];
+        }
+
+        return (object)[
+            'dev' => $dev,
+            'current' => (object)$cur,
             'from' => $from,
             'to' => $to,
-            'current' => $cur,
-            'color' => match (true) {
-                $cur['online'] !== 'true' => 'red',
-                $dev->get('params.voltage.min', $cur['voltage']) > $cur['voltage'] => 'yellow',
-                $dev->get('params.voltage.max', $cur['voltage']) < $cur['voltage'] => 'blue',
-                default => 'green',
-            },
-            'cfg' => $dev->get('name'),
-            'urls' => [
+            'ranges' => (object)($ranges ?? []),
+            'urls' => (object)[
                 'now' => http_build_query($qChart),
                 'back' => http_build_query(array_merge($qChart, [
                     'from' => date_create($f)->modify('-1 day')->setTime(0, 0)->format('Y-m-d H:i'),
@@ -91,12 +92,13 @@ class Html
                     'to' => date_create($t)->modify('+1 day')->setTime(23, 59)->format('Y-m-d H:i'),
                 ])),
             ],
-            'chart' => [
+            'chart' => (object)[
                 'canvas' => '#chart canvas',
                 'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
                 'dataSuffix' => empty($fields) ? 'V' : null,
                 'dataType' => 'float',
-                'layers' => $layers,
+                'layers' => $layers ?? [],
+                'colors' => ['#4CAF50', '#FEB019', '#FF4560', '#008FFB', '#775DD0', '#00E396', '#546E7A']
             ],
         ];
     }

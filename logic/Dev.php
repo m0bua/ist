@@ -19,10 +19,9 @@ class Dev extends Cfg
     public static function createPoint(string $dev, array $data = []): ?Point
     {
         $cfg = self::create($dev);
-        $class = self::class($cfg->get('class'));
 
-        return class_exists($class)
-            ? $class::init($cfg)->check($data)
+        return class_exists($cfg->class())
+            ? $cfg->class()::init($cfg)->check($data)
             : null;
     }
 
@@ -50,8 +49,8 @@ class Dev extends Cfg
             while (!feof($stdout)) echo fgets($stdout);
     }
 
-    public static function class($class)
+    public function class()
     {
-        return "Points\\$class";
+        return "\\Points\\" . $this->get('class');
     }
 }
