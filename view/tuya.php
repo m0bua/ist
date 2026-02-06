@@ -36,7 +36,7 @@
 
         #back {
             position: absolute;
-            top: -1.3em;
+            top: -1.7em;
             left: 0;
         }
 
@@ -178,7 +178,7 @@
             Back
         </a>
         <div id="status" style="background-color:<?= $data['color'] ?>">
-            <h1><?= $data['current']['voltage'] ?>V</h1>
+            <h1><?= $data['current']['online'] === 'true' ? $data['current']['voltage'] . 'V' : 'Offline' ?></h1>
             <p>Updated at <?= $data['current']['date'] ?></p>
         </div>
     </section>
