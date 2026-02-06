@@ -67,22 +67,30 @@ class Html
         [$t] = explode(' ', $to);
 
         foreach ($layers as $l) if (!empty($l->data)) {
-            $offline = date_create();
             $vals = array_filter($l->data, fn($i) => $i[1] > 0);
             foreach ($l->data as $i) {
                 if ($i[1] > 0) {
-                    if (isset($date))
-                        $offline = ($offline ?? date_create())->add($date->diff(date_create('@' . $i[0])));
-                    unset($date);
-                } elseif (empty($date)) $date = date_create('@' . $i[0]);
+                    if (empty($dOn)) $dOn = date_create('@' . $i[0]);
+                    if (isset($dOff)) $off = ($off ?? date_create())
+                        ->add($dOff->diff(date_create('@' . $i[0])));
+                    unset($dOff);
+                } else {
+                    if (empty($dOff)) $dOff = date_create('@' . $i[0]);
+                    if (isset($dOn)) $on = ($on ?? date_create())
+                        ->add($dOn->diff(date_create('@' . $i[0])));
+                    unset($dOn);
+                }
             }
-            if (isset($date)) $offline = $offline->add($date->diff(date_create('@' . $i[0])));
-            $offline = date_create()->diff($offline);
+            if (isset($dOn)) $on = $on->add($dOn->diff(date_create('@' . $i[0])));
+            if (isset($dOff)) $off = $off->add($dOff->diff(date_create('@' . $i[0])));
+            $on = date_create()->diff($on);
+            $off = date_create()->diff($off);
             if (!empty($vals)) $ranges[] = (object)[
                 'title' => $l->title,
                 'min' => min(array_column($vals, '1')),
                 'max' => max(array_column($vals, '1')),
-                'offline' => $offline->invert ? 0 : $offline->format('%ad %H:%I'),
+                'on' => ($on->invert ?? true) ? 0 : $on->format('%ad %H:%I'),
+                'off' => ($off->invert ?? true) ? 0 : $off->format('%ad %H:%I'),
             ];
         }
 

@@ -21,7 +21,7 @@
             Back
         </a>
         <div id="status" style="background-color:dark<?= $data->dev->class()::COLORS[$data->dev->get('status')] ?>">
-            <h1><?= $data->current->online === 'true' ? $data->current->voltage . 'V' : 'Offline' ?></h1>
+            <h1><?= $data->current->online === 'true' ? $data->current->voltage . 'V' : 'Off' ?></h1>
             <p>Updated at <?= $data->current->date ?></p>
         </div>
         <?php foreach ($data->dev->get('dates') as $k => $i): ?>
@@ -62,7 +62,9 @@
             <?php foreach ($data->ranges as $k => $r): ?>
                 <br>
                 <center style="color:<?= $data->chart->colors[$k] ?>">
-                    <?= $r->title ?>: <?= $r->min ?> - <?= $r->max ?><?php if (!empty($r->offline)): ?>, total offline: <?= $r->offline ?><?php endif ?>.
+                    <?= $r->title ?>: <?= $r->min ?> - <?= $r->max ?><?php if (!empty($r->on)): ?>,
+                    on: <?= $r->on ?><?php endif ?><?php if (!empty($r->off)): ?>,
+                    off: <?= $r->off ?><?php endif ?>.
                 </center>
             <?php endforeach ?>
             <canvas></canvas>
