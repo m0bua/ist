@@ -52,11 +52,11 @@ class Html
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
         if (empty($cur)) exit(header('location: /'));
         $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
-        if (empty($fields)) $layers[] = ['title' => 'Voltage', 'data' => array_map(fn($i) => [
+        if (empty($fields)) $layers[] = (object)['title' => 'Voltage', 'data' => array_map(fn($i) => [
             strtotime($i['date']),
             $i['online'] == 'true' ? $i['voltage'] : 0,
         ], $entries)];
-        else foreach ($fields as $f) $layers[] = [
+        else foreach ($fields as $f) $layers[] = (object)[
             'title' => ucfirst($f),
             'data' => array_map(fn($i) =>
             [strtotime($i['date']), $i[$f]], $entries)
@@ -66,12 +66,23 @@ class Html
         [$f] = explode(' ', $from);
         [$t] = explode(' ', $to);
 
-        foreach ($layers as $l) if (!empty($l['data'])) {
-            $vals = array_filter(array_column($l['data'], '1'), fn($i) => $i > 0);
+        foreach ($layers as $l) if (!empty($l->data)) {
+            $offline = date_create();
+            $vals = array_filter($l->data, fn($i) => $i[1] > 0);
+            foreach ($l->data as $i) {
+                if ($i[1] > 0) {
+                    if (isset($date))
+                        $offline = ($offline ?? date_create())->add($date->diff(date_create('@' . $i[0])));
+                    unset($date);
+                } elseif (empty($date)) $date = date_create('@' . $i[0]);
+            }
+            if (isset($date)) $offline = $offline->add($date->diff(date_create('@' . $i[0])));
+            $offline = date_create()->diff($offline);
             if (!empty($vals)) $ranges[] = (object)[
-                'title' => $l['title'],
-                'min' => min($vals),
-                'max' => max($vals)
+                'title' => $l->title,
+                'min' => min(array_column($vals, '1')),
+                'max' => max(array_column($vals, '1')),
+                'offline' => $offline->invert ? 0 : $offline->format('%ad %H:%I'),
             ];
         }
 

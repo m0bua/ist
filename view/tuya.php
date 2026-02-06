@@ -62,7 +62,7 @@
             <?php foreach ($data->ranges as $k => $r): ?>
                 <br>
                 <center style="color:<?= $data->chart->colors[$k] ?>">
-                    <?= $r->title ?>: <?= $r->min ?> - <?= $r->max ?>
+                    <?= $r->title ?>: <?= $r->min ?> - <?= $r->max ?><?php if (!empty($r->offline)): ?>, total offline: <?= $r->offline ?><?php endif ?>.
                 </center>
             <?php endforeach ?>
             <canvas></canvas>
