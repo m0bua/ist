@@ -36,8 +36,14 @@
 
         #back {
             position: absolute;
-            top: 0;
+            top: -1.3em;
             left: 0;
+        }
+
+        #back svg {
+            position: absolute;
+            top: .1em;
+            left: -1.2em;
         }
 
         #current #status {
@@ -79,10 +85,18 @@
         #dates * {
             margin: auto 1em;
             padding: 5px;
+            line-height: 1;
         }
 
         #dates a {
+            display: inline-block;
             text-decoration: none;
+            vertical-align: middle;
+        }
+
+        #dates a svg {
+            margin: 0;
+            padding: 0;
         }
 
         #dates input[type=submit],
@@ -103,7 +117,7 @@
             display: block;
         }
 
-        @media screen and (max-width: 700px) {
+        @media screen and (max-width: 980px) {
             #chart canvas {
                 aspect-ratio: 3/4;
             }
@@ -151,14 +165,18 @@
             }
         }
     </style>
-    <script src="chart.min.js"></script>
+    <script src="res/chart.min.js"></script>
 </head>
 
 <body id="body" class="dark">
 
-
     <section id="current">
-        <a id="back" href="/">🡴 Back</a>
+        <a id="back" href="/">
+            <svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15.6569 10H10M10 10V15.6569M10 10L18.364 18.364M20.8278 13.7568C21.3917 10.9096 20.5704 7.84251 18.364 5.63604C14.8492 2.12132 9.15076 2.12132 5.63604 5.63604C2.12132 9.15076 2.12132 14.8492 5.63604 18.364C7.84251 20.5704 10.9096 21.3917 13.7568 20.8278" stroke="#777" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Back
+        </a>
         <div id="status" style="background-color:<?= $data['color'] ?>">
             <h1><?= $data['current']['voltage'] ?>V</h1>
             <p>Updated at <?= $data['current']['date'] ?></p>
@@ -167,14 +185,24 @@
 
     <section id="chart">
         <form id="dates" action="/" method="get">
-            <a href="?<?= $data['urls']['back'] ?>">🢀</a>
+            <a class="left" href="?<?= $data['urls']['back'] ?>">
+                <svg width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path opacity="0.15" d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" fill="#777" />
+                    <path d="M7 12H17M7 12L11 8M7 12L11 16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#aaa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </a>
             <input type="button" value="Today" onclick="window.location.href='?<?= $data['urls']['now'] ?>'">
             <input name="chart" type="hidden" value="<?= $data['cfg'] ?>">
             <input name="from" type="datetime-local" value="<?= $data['from'] ?>">
             <span>-</span>
             <input name="to" type="datetime-local" value="<?= $data['to'] ?>">
             <input type="submit" value="Go">
-            <a href="?<?= $data['urls']['fwd'] ?>">🢂</a>
+            <a class="right" href="?<?= $data['urls']['fwd'] ?>">
+                <svg width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path opacity="0.15" d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" fill="#777" />
+                    <path d="M17 12H7M17 12L13 16M17 12L13 8M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#aaa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </a>
         </form>
 
         <?php if (empty($data['chart']['layers']['1']['data'])): ?>
