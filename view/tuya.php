@@ -38,8 +38,9 @@
         <?php foreach ($data->dev->get('dates') as $k => $i): ?>
             <?php if (!empty($i)): ?>
                 <center style="color:<?= $data->dev->class()::COLORS[$k] ?>">
-                    Last <?= $data->dev->class()::STATUSES[$k] ?>: <?= date_create($i)->format('Y.m.d H:i') ?>
-                    (<?= date_create()->diff(date_create($i))->format('%ad %H:%I') ?> ago).
+                    Last&nbsp;<?= $data->dev->class()::STATUSES[$k] ?>:
+                    <?= date_create($i)->format('Y.m.d\&\n\b\s\p;H:i') ?>
+                    (<?= date_create()->diff(date_create($i))->format('%ad&nbsp;%H:%I') ?>&nbsp;ago).
                 </center>
             <?php endif ?>
         <?php endforeach ?>
@@ -53,7 +54,11 @@
                     <path d="M7 12H17M7 12L11 8M7 12L11 16M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#aaa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
             </a>
-            <input type="button" value="Today" onclick="window.location.href='?<?= $data->urls->now ?>'">
+            <div id="presets">
+                <?php foreach ($data->urls->buttons as $name => $url): ?>
+                    <input type="button" value="<?= $name ?>" onclick="window.location.href='?<?= $url ?>'">
+                <?php endforeach ?>
+            </div>
             <input name="chart" type="hidden" value="<?= $data->dev->get('name') ?>">
             <input name="from" type="datetime-local" value="<?= $data->from ?>">
             <span>-</span>

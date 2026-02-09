@@ -49,8 +49,9 @@ class Html
         ]);
 
         $curWhere = $where = "t_id = " . $dev->get('address');
-        $from = date_create($params['from'] ?? '0:0')->format('Y-m-d H:i');
-        $to =  date_create($params['to'] ?? '23:59')->format('Y-m-d H:i');
+
+        $from = date_create($params['from'] ?? '-1day')->format('Y-m-d H:i');
+        $to =  date_create($params['to'] ?? 'now')->format('Y-m-d H:i');
         $where .= " AND date >= '$from' AND date <= '$to'";
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
@@ -75,8 +76,6 @@ class Html
         }
 
         $qChart = ['chart' => $dev->get('name')];
-        [$f] = explode(' ', $from);
-        [$t] = explode(' ', $to);
 
         foreach ($layers as $l) if (!empty($l->data)) {
             $on = date_create();
@@ -115,14 +114,34 @@ class Html
             'to' => $to,
             'ranges' => $ranges ?? [],
             'urls' => (object)[
-                'now' => http_build_query($qChart),
+                'buttons' => [
+                    '24H' => http_build_query($qChart),
+                    'Today' => http_build_query(array_merge($qChart, [
+                        'from' => date_create()->setTime(0, 0)->format('Y-m-d H:i'),
+                        'to' => date_create()->setTime(0, 0)->modify('+1 day')->format('Y-m-d H:i'),
+                    ])),
+                    'Week' => http_build_query(array_merge($qChart, [
+                        'from' => date_create('last Monday')
+                            ->setTime(0, 0)->format('Y-m-d H:i'),
+                        'to' => date_create('last Monday')
+                            ->setTime(0, 0)->modify('+1 week')->format('Y-m-d H:i'),
+                    ])),
+                    'Month' => http_build_query(array_merge($qChart, [
+                        'from' => date_create('first day of this month')
+                            ->setTime(0, 0)->format('Y-m-d H:i'),
+                        'to' => date_create('first day of this month')
+                            ->setTime(0, 0)->modify('+1 month')->format('Y-m-d H:i'),
+                    ])),
+                ],
                 'back' => http_build_query(array_merge($qChart, [
-                    'from' => date_create($f)->modify('-1 day')->setTime(0, 0)->format('Y-m-d H:i'),
-                    'to' => date_create($f)->modify('-1 day')->setTime(23, 59)->format('Y-m-d H:i'),
+                    'from' => date_create($from)->add(date_create($to)
+                        ->diff(date_create($from)))->format('Y-m-d H:i'),
+                    'to' => date_create($from)->format('Y-m-d H:i'),
                 ])),
                 'fwd' => http_build_query(array_merge($qChart, [
-                    'from' => date_create($t)->modify('+1 day')->setTime(0, 0)->format('Y-m-d H:i'),
-                    'to' => date_create($t)->modify('+1 day')->setTime(23, 59)->format('Y-m-d H:i'),
+                    'from' => date_create($to)->format('Y-m-d H:i'),
+                    'to' => date_create($to)->add(date_create($from)
+                        ->diff(date_create($to)))->format('Y-m-d H:i'),
                 ])),
             ],
             'chart' => (object)[
