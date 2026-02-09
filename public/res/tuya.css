@@ -1,192 +1,192 @@
- body {
-     background-color: #161616;
-     height: 100%;
-     margin: 0;
-     padding: 0;
-     color: lightgray;
-     top: 0;
- }
+body {
+    background-color: #161616;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    color: lightgray;
+    top: 0;
+}
 
- section {
-     position: relative;
-     width: 80vw;
-     margin: 3em auto;
- }
+section {
+    position: relative;
+    width: 80vw;
+    margin: 3em auto;
+}
 
- a {
-     color: #777;
- }
+a {
+    color: #777;
+}
 
- input,
- button {
-     background-color: #333;
-     color: lightgray;
-     border-color: #555;
- }
+input,
+button {
+    background-color: #333;
+    color: lightgray;
+    border-color: #555;
+}
 
- center {
-     margin: .3em 0;
- }
+center {
+    margin: .3em 0;
+}
 
- #back {
-     position: absolute;
-     top: -1.7em;
-     left: 0;
- }
+#back {
+    position: absolute;
+    top: -1.7em;
+    left: 0;
+}
 
- #back svg {
-     position: absolute;
-     top: .1em;
-     left: -1.2em;
- }
+#back svg {
+    position: absolute;
+    top: .1em;
+    left: -1.2em;
+}
 
- #current #status {
-     width: fit-content;
-     max-width: 80vw;
-     margin: 1em auto;
-     padding: 1.5em 5em;
-     text-align: center;
-     border-radius: 1em;
- }
+#current #status {
+    width: fit-content;
+    max-width: 80vw;
+    margin: 1em auto;
+    padding: 1.5em 5em;
+    text-align: center;
+    border-radius: 1em;
+}
 
- #current #status * {
-     margin: 0;
- }
+#current #status * {
+    margin: 0;
+}
 
- #current #status *+p {
-     margin-top: 10px;
- }
+#current #status *+p {
+    margin-top: 10px;
+}
 
- #status {
-     width: auto;
-     margin: 1em auto;
-     padding: 10px 30px;
-     text-align: center;
- }
+#status {
+    width: auto;
+    margin: 1em auto;
+    padding: 10px 30px;
+    text-align: center;
+}
 
- #empty {
-     color: red;
-     text-align: center;
-     margin-top: 3em;
- }
+#empty {
+    color: red;
+    text-align: center;
+    margin-top: 3em;
+}
 
- #dates {
-     margin: 1em auto;
-     text-align: center;
-     position: relative;
-     display: inline-block;
-     padding: 0 3em;
-     max-width: 80vw;
- }
+#dates {
+    margin: 1em auto;
+    text-align: center;
+    position: relative;
+    display: inline-block;
+    padding: 0 3em;
+    max-width: 80vw;
+}
 
- #dates * {
-     margin: auto 1em;
-     padding: 5px;
-     line-height: 1;
- }
+#dates * {
+    margin: auto 1em;
+    padding: 5px;
+    line-height: 1;
+}
 
- #dates #presets {
-     margin: 1em auto;
- }
+#dates #presets {
+    margin: 1em auto;
+}
 
- #dates a {
-     display: inline-block;
-     text-decoration: none;
-     vertical-align: middle;
-     position: absolute;
-     top: 50%;
-     transform: translate(0, -50%);
- }
+#dates a {
+    display: inline-block;
+    text-decoration: none;
+    vertical-align: middle;
+    position: absolute;
+    top: 50%;
+    transform: translate(0, -50%);
+}
 
- #dates a:first-child {
-     left: -2em;
- }
+#dates a:first-child {
+    left: -2em;
+}
 
- #dates a:last-child {
-     right: -2em;
- }
+#dates a:last-child {
+    right: -2em;
+}
 
- #dates a svg {
-     margin: 0;
-     padding: 0;
- }
+#dates a svg {
+    margin: 0;
+    padding: 0;
+}
 
- #dates input[type=submit],
- #dates input[type=button] {
-     padding: 5px 1.5em;
- }
+#dates input[type=submit],
+#dates input[type=button] {
+    padding: 5px 1.5em;
+}
 
- #dates span {
-     margin: 0;
-     padding: 0;
- }
+#dates span {
+    margin: 0;
+    padding: 0;
+}
 
- #chart {
-     text-align: center;
- }
+#chart {
+    text-align: center;
+}
 
- #chart canvas {
-     width: 100%;
-     aspect-ratio: 16/7;
-     margin: 1em auto 1em;
-     border-radius: 5px;
-     display: block;
- }
+#chart canvas {
+    width: 100%;
+    aspect-ratio: 16/7;
+    margin: 1em auto 1em;
+    border-radius: 5px;
+    display: block;
+}
 
- @media screen and (max-width: 980px) {
-     #chart canvas {
-         aspect-ratio: 4/3;
-     }
+@media screen and (max-width: 980px) {
+    #chart canvas {
+        aspect-ratio: 4/3;
+    }
 
-     #dates {
-         margin: 1em 3em;
-     }
+    #dates {
+        margin: 1em 3em;
+    }
 
-     #dates * {
-         display: block;
-         margin: 1em auto;
-     }
+    #dates * {
+        display: block;
+        margin: 1em auto;
+    }
 
-     #dates #presets {
-         margin: auto;
-         padding: 0;
-     }
+    #dates #presets {
+        margin: auto;
+        padding: 0;
+    }
 
-     #dates span {
-         display: none;
-     }
+    #dates span {
+        display: none;
+    }
 
-     #dates #presets input+input+input {
-         display: none;
-     }
- }
+    #dates #presets input+input+input {
+        display: none;
+    }
+}
 
- @media screen and (max-width: 500px) {
-     #dates {
-         margin: 1em 1em;
-         padding: 1em 3em;
-     }
+@media screen and (max-width: 500px) {
+    #dates {
+        margin: 1em 1em;
+        padding: 1em 3em;
+    }
 
-     #dates a:first-child {
-         left: 0;
-     }
+    #dates a:first-child {
+        left: 0;
+    }
 
-     #dates a:last-child {
-         right: 0;
-     }
- }
+    #dates a:last-child {
+        right: 0;
+    }
+}
 
- @media screen and (max-width: 300px) {
-     section {
-         margin: auto;
-     }
+@media screen and (max-width: 300px) {
+    section {
+        margin: auto;
+    }
 
-     #dates {
-         margin: 0;
-         padding: 0;
-     }
+    #dates {
+        margin: 0;
+        padding: 0;
+    }
 
-     #dates a {
-         display: none;
-     }
- }
+    #dates a {
+        display: none;
+    }
+}
