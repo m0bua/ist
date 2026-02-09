@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
-    <link rel=stylesheet type="text/css" href="res/tuya.css">
+    <link rel=stylesheet type="text/css" href="res/tuya.css?v1">
     <script src="res/chart.min.js"></script>
 </head>
 
