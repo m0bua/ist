@@ -51,7 +51,7 @@ class Tuya implements Point
         $back = $this->cfg->get('params.voltage.back', 1);
         $field = $this->cfg->get('params.voltage.field', 'voltage');
         if (is_array($field)) $field = reset($field);
-        $v = $res->online ? ($res->status->$field ?? 0) / 10 : 0;
+        $v = $res->online ? ($res->status->{$field['key']} ?? 0) / 10 : 0;
         $sCnt = $this->cfg->statusesCnt();
         $this->status = match (true) {
             !$res->online => 0,
