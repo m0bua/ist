@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
-    <link rel=stylesheet type="text/css" href="res/tuya.css?v1">
+    <link rel=stylesheet type="text/css" href="res/tuya.css?v2">
     <script src="res/chart.min.js"></script>
 </head>
 
@@ -82,7 +82,7 @@
                     off: <?= $r->off ?><?php endif ?>.
                 </center>
             <?php endforeach ?>
-            <canvas></canvas>
+            <div id="chartContent"><canvas></canvas></div>
             <script>
                 let c = new Chart(<?= json_encode($data->chart) ?>);
                 c.dateStyles = {
