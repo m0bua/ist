@@ -61,22 +61,45 @@ class Helper
         $default = null
     ) {
         if (is_null($field)) return $data;
-        if (isset($data[$field])) $data = $data[$field];
+        $item = self::getKey($data, $field);
+        if ($item != $data) $data = $item;
         else foreach (explode('.', $field) as $segment) {
-            if (is_string($data))
-                $data = json_decode($data, true) ?? $data;
-            if (
-                !is_array($data) ||
-                !array_key_exists($segment, $data)
-            ) return $default;
-            $data = $data[$segment];
+            $item = self::getKey($data, $segment);
+            if ($item != $data) $data = $item;
+            else return $default;
         }
 
-        if (is_numeric($data)) $data = (float)$data;
+        if (is_numeric($data))
+            $data = ceil($data) == $data
+                ? (int)$data : (float)$data;
         if (is_string($data))
             $data = @json_decode($data) ?? $data;
 
         return $data;
+    }
+
+    public static function getKey($item, $key)
+    {
+        $data = $item;
+        if (is_string($data)) $data = json_decode($data, true) ?? $data;
+        if (is_array($data) && isset($data[$key])) $item = $data[$key];
+        elseif (is_object($data) && isset($data->$key)) $item = $data->$key;
+
+        return $item;
+    }
+
+    public static function pluck(array $array, $key = null, mixed $value = null)
+    {
+        $keys = empty($key)
+            ? (is_array($array) ? array_keys($array) : $array)
+            : (is_array($key) ? $key : array_map(fn($i)
+            => self::getArrayKey($i, $key), $array));
+
+        $values = empty($value) ? $array
+            : (is_array($value) ? $value : array_map(fn($i)
+            => self::getArrayKey($i, $value), $array));
+
+        return array_combine($keys, (array)$values);
     }
 
     public static function ip(): string

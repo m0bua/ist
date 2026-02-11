@@ -159,7 +159,7 @@ class Html
     {
         $split = array_map(
             fn($i) => explode('_', $i),
-            array_combine(array_keys($configs), array_keys($configs))
+            Helper::pluck($configs, null, array_keys($configs))
         );
         $max = max(array_map(fn($i) => count($i), $split));
         foreach ($configs as $dev => $cfg) {

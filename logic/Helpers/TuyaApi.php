@@ -25,10 +25,7 @@ class TuyaApi extends Api
             }
 
             $res = $dev->result;
-            $res->status = array_combine(
-                array_column($res->status, 'code'),
-                array_column($res->status, 'value')
-            );
+            $res->status = (object)Helper::pluck($res->status, 'code', 'value');
             $res = json_encode($res);
 
             DB::start()->upsert('tuya_log', ['t_id' => $id, 'data' => $res]);

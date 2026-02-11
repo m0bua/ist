@@ -94,6 +94,6 @@ class Tuya implements Point
             return $result;
         }, array_keys($fields), $fields);
 
-        return array_combine(array_column($fields, 'key'), $fields);
+        return Helper::pluck($fields, 'key');
     }
 }
