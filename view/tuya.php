@@ -33,7 +33,7 @@
                     Off
                 <?php endif ?>
             </h1>
-            <p>Updated at <?= $data->current->date ?></p>
+            <p>Updated at <?= date_create($data->current->date)->format('Y-m-d H:i') ?></p>
         </div>
         <?php foreach ($data->dev->get('dates') as $k => $i): ?>
             <?php if (!empty($i)): ?>

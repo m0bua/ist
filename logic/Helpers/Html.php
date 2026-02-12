@@ -110,8 +110,8 @@ class Html
         return (object)[
             'dev' => $dev,
             'current' => (object)$cur,
-            'from' => $from,
-            'to' => $to,
+            'from' => date_create($from)->format('Y-m-d H:i'),
+            'to' => date_create($to)->format('Y-m-d H:i'),
             'ranges' => $ranges ?? [],
             'urls' => (object)[
                 'buttons' => [
