@@ -7,13 +7,18 @@ class Auth
 {
     use Storage;
 
+    const SESSION_EXP_MIN = 30 * 24 * 60;
+    const SESSION_EXP_SEC = self::SESSION_EXP_MIN * 60;
+
     private const TABLE = 'auth';
     private const LOGIN_PATH = '/login.php';
     private static string $user;
 
     function __construct()
     {
-        session_start(['cookie_lifetime' => 30 * 24 * 60 * 60]);
+        ini_set('session.cache_expire', self::SESSION_EXP_MIN);
+        ini_set('session.gc_maxlifetime', self::SESSION_EXP_SEC);
+        session_start(['cookie_lifetime' => self::SESSION_EXP_SEC]);
     }
 
     public function start(): void
