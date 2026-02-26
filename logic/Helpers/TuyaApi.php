@@ -6,7 +6,7 @@ use tuyapiphp\TuyaApi as Api;
 
 class TuyaApi extends Api
 {
-    const DELAY = '5 MINUTE';
+    const DELAY = '150 SECOND';
 
     public static function get(string $id, ?string $delay = null): ?object
     {
