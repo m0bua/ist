@@ -40,7 +40,7 @@ class Html
 
         $fields = $dev->class()::fields($dev, $fields);
         $suffixes = array_filter(array_unique(array_map(fn($i) =>
-        trim($i->suffix ?? null), $fields)), fn($i) => !empty($i));
+        trim($i->suffix ?? ''), $fields)), fn($i) => !empty($i));
         $select = implode(', ', [
             "date",
             "data->'$.online' as online",
