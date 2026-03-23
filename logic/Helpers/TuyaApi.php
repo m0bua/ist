@@ -28,8 +28,9 @@ class TuyaApi extends Api
 
             $res = $dev->result;
             $res->status = (object)Helper::pluck($res->status, 'code', 'value');
-            foreach ($cfg->get('params.tData.decode', []) as $k => $f)
-                $res->status->{$f} = self::phaseParse($res->status->{$k});
+            foreach ($cfg->get('params.tData.decode', []) as $key => $field)
+                foreach (self::phaseParse($res->status->{$key}) as $k => $i)
+                    $res->status->{"$k$field"} = $i;
             $res = json_encode($res);
 
             DB::start()->upsert('tuya_log', ['t_id' => $id, 'data' => $res]);

@@ -23,16 +23,16 @@
         <div id="status" style="background-color:dark<?= $data->dev->class()::COLORS[$data->dev->get('status')] ?>">
             <h1>
                 <?php if ($data->current->online === 'true'): ?>
-                    <?php foreach ($data->current->fields as $f): ?>
+                    <?php foreach ($data->current->fields as $fields): ?>
                         <p>
-                            <?php foreach ($f as $k => $i) if (!empty($i)): ?>
+                            <?php foreach ($fields as $k => $field) if (!empty($field)): ?>
                                 <span>
-                                    <?php if (isset($i->name)): ?><?= $i->name ?>:<?php endif ?>
-                                    <?= $i->value ?><?php if (isset($i->suffix)): ?><?= $i->suffix ?><?php endif ?>
+                                    <?php if (isset($field->name)): ?><?= $field->name ?>:<?php endif ?>
+                                    <?= $field->value ?><?php if (isset($field->suffix)): ?><?= $field->suffix ?><?php endif ?>
                                 </span>
                             <?php endif ?>
                         </p>
-                    <?php // break ?>
+                    <?php break ?>
                     <?php endforeach ?>
                 <?php else: ?>
                     Off

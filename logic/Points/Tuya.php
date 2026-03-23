@@ -49,19 +49,21 @@ class Tuya implements Point
         $min = $this->cfg->get('params.tData.min');
         $max = $this->cfg->get('params.tData.max');
         $back = $this->cfg->get('params.tData.back', 1);
-        $field = $this->cfg->get('params.tData.fields', 'voltage');
-        if (is_array($field)) $field = reset($field);
-        $v = $res->online ? ($res->status->{$field['key']} ?? 0) / 10 : 0;
-        $sCnt = $this->cfg->statusesCnt();
-        $this->status = match (true) {
-            !$res->online => 0,
-            $v > 0 && $min && $sCnt >= 3 && $min > $v => 2,
-            $v > 0 && $max && $sCnt >= 4 && $max < $v => 3,
-            $s == 0 ||
-                ($min && $s == 2 && ($min + $back) < $v) ||
-                ($max && $s == 3 && ($max - $back) > $v) => 1,
-            default => $s
-        };
+        $fields = $this->cfg->get('params.tData.fields', ['voltage']);
+        foreach ($fields as $field) {
+            $v = $res->online ? ($res->status->{$field['key']} ?? 0) / 10 : 0;
+            $sCnt = $this->cfg->statusesCnt();
+            $this->status = match (true) {
+                !$res->online => 0,
+                $v > 0 && $min && $sCnt >= 3 && $min > $v => 2,
+                $v > 0 && $max && $sCnt >= 4 && $max < $v => 3,
+                $s == 0 ||
+                    ($min && $s == 2 && ($min + $back) < $v) ||
+                    ($max && $s == 3 && ($max - $back) > $v) => 1,
+                default => $s
+            };
+            if ($this->status !== 1) break;
+        }
 
         $this->cfg->set('status', $this->status);
         $this->cfg->set((int)$this->status, Helper::date());
