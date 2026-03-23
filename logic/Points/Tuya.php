@@ -65,7 +65,7 @@ class Tuya implements Point
                 default => $s
             };
         }
-        $v = \bcdiv(array_sum($vs), count($vs), 1);
+        $v = round(array_sum($vs) / count($vs), 1);
 
         $this->cfg->set('status', $this->status);
         $this->cfg->set((int)$this->status, Helper::date());
