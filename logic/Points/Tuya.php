@@ -42,14 +42,14 @@ class Tuya implements Point
 
     private function test()
     {
-        $res = TuyaApi::get($this->cfg->get('address'), $this->cfg->get('wait'));
+        $res = TuyaApi::get($this->cfg);
         if (empty($res)) return;
 
         $s = $this->cfg->get('status');
-        $min = $this->cfg->get('params.voltage.min');
-        $max = $this->cfg->get('params.voltage.max');
-        $back = $this->cfg->get('params.voltage.back', 1);
-        $field = $this->cfg->get('params.voltage.field', 'voltage');
+        $min = $this->cfg->get('params.tData.min');
+        $max = $this->cfg->get('params.tData.max');
+        $back = $this->cfg->get('params.tData.back', 1);
+        $field = $this->cfg->get('params.tData.fields', 'voltage');
         if (is_array($field)) $field = reset($field);
         $v = $res->online ? ($res->status->{$field['key']} ?? 0) / 10 : 0;
         $sCnt = $this->cfg->statusesCnt();
@@ -70,7 +70,7 @@ class Tuya implements Point
 
     public static function fields(Dev $dev, array $fields = [])
     {
-        $field = $dev->get('params.voltage.field', 'voltage');
+        $field = $dev->get('params.tData.fields', 'voltage');
         $fields = array_merge(is_array($field) ? $field : [$field], $fields);
         $fields = array_map(function ($k, $i) {
             if (is_array($i)) {

@@ -62,7 +62,7 @@ class Helper
     ) {
         if (is_null($field)) return $data;
         $item = self::getKey($data, $field);
-        if ($item != $data) $data = $item;
+        if (gettype($data) !== gettype($item) && $data !== $item) $data = $item;
         else foreach (explode('.', $field) as $segment) {
             $item = self::getKey($data, $segment);
             if ($item != $data) $data = $item;
@@ -131,5 +131,11 @@ class Helper
         if (!empty($params)) $path .= " $params";
 
         return $path;
+    }
+
+    public static function redirect(string $to = '/'): void
+    {
+        header("location: $to");
+        exit;
     }
 }

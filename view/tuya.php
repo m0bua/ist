@@ -1,4 +1,4 @@
-<?php $data = \Helpers\Html::getVoltageData($_GET) ?>
+<?php $data = \Helpers\Html::getTData($_GET) ?>
 
 <!DOCTYPE html>
 <html>

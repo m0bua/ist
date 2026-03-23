@@ -31,11 +31,11 @@ class Html
         return $response;
     }
 
-    public static function getVoltageData(array $params, array $fields = [])
+    public static function getTData(array $params, array $fields = [])
     {
         $dev = array_filter(Dev::all(), fn($i) => $i->get('name') == $params['chart']
             && in_array($i->get('class'), self::CHART_CONFIGS));
-        if (empty($dev)) exit(header('location: /'));
+        if (empty($dev)) Helper::redirect();
         $dev = reset($dev);
 
         $fields = $dev->class()::fields($dev, $fields);
@@ -47,15 +47,13 @@ class Html
             'JSON_OBJECT(' . implode(', ', array_map(fn($i) =>
             "'$i->key', $i->sql", $fields)) . ') as fields'
         ]);
-
         $curWhere = $where = "t_id = " . $dev->get('address');
-
         $from = date_create($params['from'] ?? '-1day')->format('Y-m-d H:i');
         $to =  date_create($params['to'] ?? 'now')->format('Y-m-d H:i');
         $where .= " AND date >= '$from' AND date <= '$to'";
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
-        if (empty($cur)) exit(header('location: /'));
+        if (empty($cur)) Helper::redirect();
         $f = json_decode($cur['fields'], true);
         $cur['fields'] = array_map(
             fn($i, $k) => (object)array_merge((array)$i, ['value' => $f[$k]]),

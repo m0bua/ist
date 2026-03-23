@@ -88,8 +88,7 @@ class Auth
             $this->data['last_login'] = Helper::date();
             $this->data['last_login_ip'] = Helper::ip();
         }
-        if (isset($_SESSION['id']) && empty($_GET))
-            exit(header('location: /'));
+        if (isset($_SESSION['id']) && empty($_GET)) Helper::redirect();
     }
 
     private function hash(string $usr, string $pwd, string $created): string
