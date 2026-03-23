@@ -7,6 +7,15 @@ use Auth, Dev;
 class Html
 {
     const CHART_CONFIGS = ['Tuya'];
+    const CHART_COLORS = [
+        '#4CAF50',
+        '#FEB019',
+        '#FF4560',
+        '#008FFB',
+        '#775DD0',
+        '#00E396',
+        '#546E7A',
+    ];
 
     public static function getClientsJson(): string
     {
@@ -41,13 +50,15 @@ class Html
         $fields = $dev->class()::fields($dev, $fields);
         $suffixes = array_filter(array_unique(array_map(fn($i) =>
         trim($i->suffix ?? ''), $fields)), fn($i) => !empty($i));
+        $mFields = call_user_func_array('array_merge', $fields);
         $select = implode(', ', [
             "date",
             "data->'$.online' as online",
             'JSON_OBJECT(' . implode(', ', array_map(fn($i) =>
-            "'$i->key', $i->sql", $fields)) . ') as fields'
+            "'$i->key', $i->sql", $mFields)) . ') as fields'
         ]);
         $curWhere = $where = "t_id = " . $dev->get('address');
+        $qChart = ['chart' => $dev->get('name')];
         $from = date_create($params['from'] ?? '-1day')->format('Y-m-d H:i');
         $to =  date_create($params['to'] ?? 'now')->format('Y-m-d H:i');
         $where .= " AND date >= '$from' AND date <= '$to'";
@@ -55,54 +66,67 @@ class Html
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
         if (empty($cur)) Helper::redirect();
         $f = json_decode($cur['fields'], true);
-        $cur['fields'] = array_map(
+        $cur['fields'] = array_map(fn($i) => array_map(
             fn($i, $k) => (object)array_merge((array)$i, ['value' => $f[$k]]),
-            $fields,
-            array_keys($fields)
-        );
-
+            $i,
+            array_keys($i)
+        ), $fields);
         $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
-        foreach ($fields as $f) {
-            $title = ucfirst($f->key);
-            if (count($suffixes) > 1 && isset($f->suffix)) $title .= " ($f->suffix)";
-            $layers[] = (object)[
-                'title' => $title,
-                'data' => array_map(fn($i) =>
+        foreach ($fields as $array) {
+            $layers = [];
+            $colors = self::CHART_COLORS;
+            foreach (array_values($array) as $key => $field) {
+                $title = ucfirst($field->key);
+                if (count($suffixes) > 1 && isset($field->suffix)) $title .= " ($field->suffix)";
+                $layers[] = (object)['title' => $title, 'data' => array_map(fn($i) =>
                 [strtotime($i['date']), $i['online'] == 'true'
-                    ? Helper::getArrayKey($i, "fields.$f->key") : 0], $entries)
-            ];
+                    ? Helper::getArrayKey($i, "fields.$field->key") : 0], $entries)];
+                if (isset($field->color)) $colors[$key] = $field->color;
+            }
+
+            $k = implode('_', array_column($array, 'key'));
+            $charts[$k] = (object)['chart' => (object)[
+                'canvas' => "#chart_$k canvas",
+                'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
+                'dataSuffix' => count($suffixes) === 1 ? reset($suffixes) : null,
+                'dataType' => 'float',
+                'layers' => $layers,
+                'colors' => $colors,
+            ]];
         }
 
-        $qChart = ['chart' => $dev->get('name')];
-
-        foreach ($layers as $l) if (!empty($l->data)) {
-            $on = date_create();
-            $off = date_create();
-            $vals = array_filter($l->data, fn($i) => $i[1] > 0);
-            foreach ($l->data as $i) {
-                if ($i[1] > 0) {
-                    if (empty($dOn)) $dOn = date_create('@' . $i[0]);
-                    if (isset($dOff)) $off = ($off ?? date_create())
-                        ->add($dOff->diff(date_create('@' . $i[0])));
-                    unset($dOff);
-                } else {
-                    if (empty($dOff)) $dOff = date_create('@' . $i[0]);
-                    if (isset($dOn)) $on = ($on ?? date_create())
-                        ->add($dOn->diff(date_create('@' . $i[0])));
-                    unset($dOn);
+        foreach ($charts as $key => $chart) {
+            $ranges = [];
+            foreach ($chart->chart->layers as $l) if (!empty($l->data)) {
+                $on = date_create();
+                $off = date_create();
+                $vals = array_filter($l->data, fn($i) => $i[1] > 0);
+                foreach ($l->data as $i) {
+                    if ($i[1] > 0) {
+                        if (empty($dOn)) $dOn = date_create('@' . $i[0]);
+                        if (isset($dOff)) $off = ($off ?? date_create())
+                            ->add($dOff->diff(date_create('@' . $i[0])));
+                        unset($dOff);
+                    } else {
+                        if (empty($dOff)) $dOff = date_create('@' . $i[0]);
+                        if (isset($dOn)) $on = ($on ?? date_create())
+                            ->add($dOn->diff(date_create('@' . $i[0])));
+                        unset($dOn);
+                    }
                 }
+                if (isset($dOn)) $on = ($on ?? date_create())->add($dOn->diff(date_create('@' . $i[0])));
+                if (isset($dOff)) $off = ($off ?? date_create())->add($dOff->diff(date_create('@' . $i[0])));
+                $onR = date_create()->diff($on ?? date_create())->format('%ad %H:%I');
+                $offR = date_create()->diff($off ?? date_create())->format('%ad %H:%I');
+                if (!empty($vals)) $ranges[] = (object)[
+                    'title' => $l->title,
+                    'min' => min(array_column($vals, '1')),
+                    'max' => max(array_column($vals, '1')),
+                    'on' => $onR == '0d 00:00' ? 0 : $onR,
+                    'off' => $offR == '0d 00:00' ? 0 : $offR,
+                ];
             }
-            if (isset($dOn)) $on = ($on ?? date_create())->add($dOn->diff(date_create('@' . $i[0])));
-            if (isset($dOff)) $off = ($off ?? date_create())->add($dOff->diff(date_create('@' . $i[0])));
-            $onR = date_create()->diff($on ?? date_create())->format('%ad %H:%I');
-            $offR = date_create()->diff($off ?? date_create())->format('%ad %H:%I');
-            if (!empty($vals)) $ranges[] = (object)[
-                'title' => $l->title,
-                'min' => min(array_column($vals, '1')),
-                'max' => max(array_column($vals, '1')),
-                'on' => $onR == '0d 00:00' ? 0 : $onR,
-                'off' => $offR == '0d 00:00' ? 0 : $offR,
-            ];
+            $charts[$key]->ranges = $ranges;
         }
 
         return (object)[
@@ -110,7 +134,7 @@ class Html
             'current' => (object)$cur,
             'from' => date_create($from)->format('Y-m-d H:i'),
             'to' => date_create($to)->format('Y-m-d H:i'),
-            'ranges' => $ranges ?? [],
+            'charts' => $charts,
             'urls' => (object)[
                 'buttons' => [
                     '24H' => http_build_query($qChart),
@@ -141,14 +165,6 @@ class Html
                     'to' => date_create($to)->add(date_create($from)
                         ->diff(date_create($to)))->format('Y-m-d H:i'),
                 ])),
-            ],
-            'chart' => (object)[
-                'canvas' => '#chart canvas',
-                'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
-                'dataSuffix' => count($suffixes) === 1 ? reset($suffixes) : null,
-                'dataType' => 'float',
-                'layers' => $layers ?? [],
-                'colors' => ['#4CAF50', '#FEB019', '#FF4560', '#008FFB', '#775DD0', '#00E396', '#546E7A']
             ],
         ];
     }

@@ -70,9 +70,12 @@ class Tuya implements Point
 
     public static function fields(Dev $dev, array $fields = [])
     {
-        $field = $dev->get('params.tData.fields', 'voltage');
-        $fields = array_merge(is_array($field) ? $field : [$field], $fields);
-        $fields = array_map(function ($k, $i) {
+        $fieldArr = $dev->get('params.tData.fields', 'voltage');
+        $fieldArr = [is_array($fieldArr) ? $fieldArr : [$fieldArr]];
+        if ($f = $dev->get('params.tData.extrafields'))
+            $fieldArr = array_merge($fieldArr, $f);
+        $fieldArr = array_merge($fieldArr, $fields);
+        $fieldArr = array_map(fn($i) => Helper::pluck(array_map(function ($k, $i) {
             if (is_array($i)) {
                 $key = $i['key'] ?? $i['name'] ?? null;
                 $result = (object)[
@@ -80,6 +83,7 @@ class Tuya implements Point
                     'sql' => $i['sql'] ?? "data->'$.status.$key",
                 ];
                 if (isset($i['name'])) $result->name = $i['name'];
+                if (isset($i['color'])) $result->color = $i['color'];
                 if (isset($i['suffix'])) $result->suffix = $i['suffix'];
                 elseif (empty($result->name)) $result->name = ucfirst($key);
             } else {
@@ -92,8 +96,8 @@ class Tuya implements Point
             }
 
             return $result;
-        }, array_keys($fields), $fields);
+        }, array_keys($fieldArr), $i), 'key'), $fieldArr);
 
-        return Helper::pluck($fields, 'key');
+        return $fieldArr;
     }
 }

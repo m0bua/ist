@@ -23,12 +23,17 @@
         <div id="status" style="background-color:dark<?= $data->dev->class()::COLORS[$data->dev->get('status')] ?>">
             <h1>
                 <?php if ($data->current->online === 'true'): ?>
-                    <?php foreach ($data->current->fields as $k => $i) if (!empty($i)): ?>
+                    <?php foreach ($data->current->fields as $f): ?>
                         <p>
-                            <?php if (isset($i->name)): ?><?= $i->name ?>:<?php endif ?>
-                            <?= $i->value ?><?php if (isset($i->suffix)): ?><?= $i->suffix ?><?php endif ?>
+                            <?php foreach ($f as $k => $i) if (!empty($i)): ?>
+                                <span>
+                                    <?php if (isset($i->name)): ?><?= $i->name ?>:<?php endif ?>
+                                    <?= $i->value ?><?php if (isset($i->suffix)): ?><?= $i->suffix ?><?php endif ?>
+                                </span>
+                            <?php endif ?>
                         </p>
-                    <?php endif ?>
+                    <?php // break ?>
+                    <?php endforeach ?>
                 <?php else: ?>
                     Off
                 <?php endif ?>
@@ -72,54 +77,56 @@
             </a>
         </form>
 
-        <?php if (empty($data->ranges)): ?>
-            <div id="empty">No data!</div>
-        <?php else: ?><br>
-            <?php foreach ($data->ranges as $k => $r): ?>
-                <center style="color:<?= $data->chart->colors[$k] ?>">
-                    <?= $r->title ?>: <?= $r->min ?> - <?= $r->max ?><?php if (!empty($r->on)): ?>,
-                    on: <?= $r->on ?><?php endif ?><?php if (!empty($r->off)): ?>,
-                    off: <?= $r->off ?><?php endif ?>.
-                </center>
-            <?php endforeach ?>
-            <div id="chartContent"><canvas></canvas></div>
-            <script>
-                let c = new Chart(<?= json_encode($data->chart) ?>);
-                c.dateStyles = {
-                    year: {
-                        month: 'numeric',
-                        day: 'numeric'
-                    },
-                    month: {
-                        month: 'numeric',
-                        day: 'numeric'
-                    },
-                    day: {
-                        hour: 'numeric',
-                        hour12: false
-                    },
-                    hour: {
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: false
-                    },
-                    minute: {
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: false
-                    },
-                    tooltip: {
-                        year: 'numeric',
-                        month: 'numeric',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: false
-                    }
-                };
-                c.render();
-            </script>
-        <?php endif ?>
+        <?php foreach ($data->charts as $key => $chart): ?>
+            <?php if (empty($chart->ranges)): ?>
+                <div id="empty">No data!</div>
+            <?php else: ?><br>
+                <?php foreach ($chart->ranges as $k => $r): ?>
+                    <center style="color:<?= $chart->chart->colors[$k] ?>">
+                        <?= $r->title ?>: <?= $r->min ?> - <?= $r->max ?><?php if (!empty($r->on)): ?>,
+                        on: <?= $r->on ?><?php endif ?><?php if (!empty($r->off)): ?>,
+                        off: <?= $r->off ?><?php endif ?>.
+                    </center>
+                <?php endforeach ?>
+                <div id="chart_<?= $key ?>" class="chart"><canvas></canvas></div>
+                <script>
+                    c = new Chart(<?= json_encode($chart->chart) ?>);
+                    c.dateStyles = {
+                        year: {
+                            month: 'numeric',
+                            day: 'numeric'
+                        },
+                        month: {
+                            month: 'numeric',
+                            day: 'numeric'
+                        },
+                        day: {
+                            hour: 'numeric',
+                            hour12: false
+                        },
+                        hour: {
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: false
+                        },
+                        minute: {
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: false
+                        },
+                        tooltip: {
+                            year: 'numeric',
+                            month: 'numeric',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: false
+                        }
+                    };
+                    c.render();
+                </script>
+            <?php endif ?>
+        <?php endforeach ?>
     </section>
 </body>
 

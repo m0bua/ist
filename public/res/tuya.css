@@ -125,7 +125,7 @@ center {
     text-align: center;
 }
 
-#chartContent {
+.chart {
     resize: vertical;
     overflow: auto;
     aspect-ratio: 16/7;
