@@ -59,8 +59,8 @@ class Html
         ]);
         $curWhere = $where = "t_id = " . $dev->get('address');
         $qChart = ['chart' => $dev->get('name')];
-        $from = date_create($params['from'] ?? '-1day')->format('Y-m-d H:i');
-        $to =  date_create($params['to'] ?? 'now')->format('Y-m-d H:i');
+        $from = date_create($params['from'] ?? '-1day+1min')->format('Y-m-d H:i');
+        $to =  date_create($params['to'] ?? '+1min')->format('Y-m-d H:i');
         $where .= " AND date >= '$from' AND date <= '$to'";
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
@@ -140,19 +140,19 @@ class Html
                     '24H' => http_build_query($qChart),
                     'Today' => http_build_query(array_merge($qChart, [
                         'from' => date_create()->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create()->setTime(0, 0)->modify('+1 day')->format('Y-m-d H:i'),
+                        'to' => date_create()->setTime(0, 0)->modify('+1day')->format('Y-m-d H:i'),
                     ])),
                     'Week' => http_build_query(array_merge($qChart, [
                         'from' => date_create('last Monday')
                             ->setTime(0, 0)->format('Y-m-d H:i'),
                         'to' => date_create('last Monday')
-                            ->setTime(0, 0)->modify('+1 week')->format('Y-m-d H:i'),
+                            ->setTime(0, 0)->modify('+1week')->format('Y-m-d H:i'),
                     ])),
                     'Month' => http_build_query(array_merge($qChart, [
                         'from' => date_create('first day of this month')
                             ->setTime(0, 0)->format('Y-m-d H:i'),
                         'to' => date_create('first day of this month')
-                            ->setTime(0, 0)->modify('+1 month')->format('Y-m-d H:i'),
+                            ->setTime(0, 0)->modify('+1month')->format('Y-m-d H:i'),
                     ])),
                 ],
                 'back' => http_build_query(array_merge($qChart, [
