@@ -52,6 +52,8 @@ class Tuya implements Point
         $fields = $this->cfg->get('params.tData.fields', ['voltage']);
         foreach ($fields as $field) {
             $v = $res->online ? ($res->status->{$field['key']} ?? 0) / 10 : 0;
+            $vs[] = $v;
+            if ($this->status ?? 1 !== 1) continue;
             $sCnt = $this->cfg->statusesCnt();
             $this->status = match (true) {
                 !$res->online => 0,
@@ -62,8 +64,8 @@ class Tuya implements Point
                     ($max && $s == 3 && ($max - $back) > $v) => 1,
                 default => $s
             };
-            if ($this->status !== 1) break;
         }
+        $v = bcdiv(array_sum($vs), count($vs), 1);
 
         $this->cfg->set('status', $this->status);
         $this->cfg->set((int)$this->status, Helper::date());
