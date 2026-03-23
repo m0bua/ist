@@ -83,6 +83,11 @@ class Html
                     ? Helper::getArrayKey($i, "fields.$field->key") : 0], $entries)];
                 if (isset($field->color)) $colors[$key] = $field->color;
             }
+            $allVals = call_user_func_array('array_merge', array_map(fn($i)
+            => array_column($i->data, 1), $layers));
+            $min = floor((min($allVals) - 1));
+            $max = ceil((max($allVals) + 1));
+            if ($min < 0) $min = 0;
 
             $k = implode('_', array_column($array, 'key'));
             $charts[$k] = (object)['chart' => (object)[
@@ -90,6 +95,9 @@ class Html
                 'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
                 'dataSuffix' => count($suffixes) === 1 ? reset($suffixes) : null,
                 'dataType' => 'float',
+                'zoom' => ['yMin' => $min, 'yMax' => $max],
+                'zeroFloor' => false,
+                'autoHeadroom' => false,
                 'layers' => $layers,
                 'colors' => $colors,
             ]];
@@ -143,16 +151,16 @@ class Html
                         'to' => date_create()->setTime(0, 0)->modify('+1day')->format('Y-m-d H:i'),
                     ])),
                     'Week' => http_build_query(array_merge($qChart, [
-                        'from' => date_create('last Monday')
+                        'from' => date_create('this monday')
                             ->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create('last Monday')
-                            ->setTime(0, 0)->modify('+1week')->format('Y-m-d H:i'),
+                        'to' => date_create('next monday')
+                            ->setTime(0, 0)->format('Y-m-d H:i'),
                     ])),
                     'Month' => http_build_query(array_merge($qChart, [
                         'from' => date_create('first day of this month')
                             ->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create('first day of this month')
-                            ->setTime(0, 0)->modify('+1month')->format('Y-m-d H:i'),
+                        'to' => date_create('first day of next month')
+                            ->setTime(0, 0)->format('Y-m-d H:i'),
                     ])),
                 ],
                 'back' => http_build_query(array_merge($qChart, [
