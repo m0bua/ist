@@ -2,7 +2,7 @@
 
 namespace Helpers;
 
-use Auth, Dev;
+use Auth, Dev, stdClass;
 
 class Html
 {
@@ -51,65 +51,33 @@ class Html
         $suffixes = array_filter(array_unique(array_map(fn($i) =>
         trim($i->suffix ?? ''), $fields)), fn($i) => !empty($i));
         $mFields = call_user_func_array('array_merge', $fields);
-        $select = implode(', ', [
-            "date",
-            "data->'$.online' as online",
-            'JSON_OBJECT(' . implode(', ', array_map(fn($i) =>
-            "'$i->key', $i->sql", $mFields)) . ') as fields'
-        ]);
+        $select = implode(', ', ["date", "data->'$.online' as online", 'JSON_OBJECT('
+            . implode(', ', array_map(fn($i) => "'$i->key', $i->sql", $mFields)) . ') as fields']);
         $curWhere = $where = "t_id = " . $dev->get('address');
-        $qChart = ['chart' => $dev->get('name')];
         $from = date_create($params['from'] ?? '-1day+1min')->format('Y-m-d H:i');
-        $to =  date_create($params['to'] ?? '+1min')->format('Y-m-d H:i');
+        $to = date_create($params['to'] ?? '+1min')->format('Y-m-d H:i');
         $where .= " AND date >= '$from' AND date <= '$to'";
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
+
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
         if (empty($cur)) Helper::redirect();
         $f = json_decode($cur['fields'], true);
-        $cur['fields'] = array_map(fn($i) => array_map(
-            fn($i, $k) => (object)array_merge((array)$i, ['value' => $f[$k]]),
-            $i,
-            array_keys($i)
-        ), $fields);
+        $cur['fields'] = array_map(fn($i) => array_map(fn($i, $k) =>
+        (object)array_merge((array)$i, ['value' => $f[$k]]), $i, array_keys($i)), $fields);
+
         $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
         foreach ($fields as $array) {
             $layers = [];
+            $ranges = [];
             $colors = self::CHART_COLORS;
             foreach (array_values($array) as $key => $field) {
                 $title = ucfirst($field->key);
                 if (count($suffixes) > 1 && isset($field->suffix)) $title .= " ($field->suffix)";
-                $layers[] = (object)['title' => $title, 'data' => array_map(fn($i) =>
-                [strtotime($i['date']), $i['online'] == 'true'
-                    ? Helper::getArrayKey($i, "fields.$field->key") : 0], $entries)];
-                if (isset($field->color)) $colors[$key] = $field->color;
-            }
-            $allVals = call_user_func_array('array_merge', array_map(fn($i)
-            => array_column($i->data, 1), $layers));
-            $min = floor((min($allVals) - 1));
-            $max = ceil((max($allVals) + 1));
-            if ($min < 0) $min = 0;
-
-            $k = implode('_', array_column($array, 'key'));
-            $charts[$k] = (object)['chart' => (object)[
-                'canvas' => "#chart_$k canvas",
-                'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
-                'dataSuffix' => count($suffixes) === 1 ? reset($suffixes) : null,
-                'dataType' => 'float',
-                'zoom' => ['yMin' => $min, 'yMax' => $max],
-                'zeroFloor' => false,
-                'autoHeadroom' => false,
-                'layers' => $layers,
-                'colors' => $colors,
-            ]];
-        }
-
-        foreach ($charts as $key => $chart) {
-            $ranges = [];
-            foreach ($chart->chart->layers as $l) if (!empty($l->data)) {
+                $data = array_map(fn($i) => [strtotime($i['date']), $i['online'] == 'true'
+                    ? Helper::getArrayKey($i, "fields.$field->key") : 0], $entries);
                 $on = date_create();
                 $off = date_create();
-                $vals = array_filter($l->data, fn($i) => $i[1] > 0);
-                foreach ($l->data as $i) {
+                foreach ($data ?? [] as $i) {
                     if ($i[1] > 0) {
                         if (empty($dOn)) $dOn = date_create('@' . $i[0]);
                         if (isset($dOff)) $off = ($off ?? date_create())
@@ -126,55 +94,36 @@ class Html
                 if (isset($dOff)) $off = ($off ?? date_create())->add($dOff->diff(date_create('@' . $i[0])));
                 $onR = date_create()->diff($on ?? date_create())->format('%ad %H:%I');
                 $offR = date_create()->diff($off ?? date_create())->format('%ad %H:%I');
+                $vals = array_filter($data, fn($i) => $i[1] > 0);
                 if (!empty($vals)) $ranges[] = (object)[
-                    'title' => $l->title,
+                    'title' => $title,
                     'min' => min(array_column($vals, '1')),
                     'max' => max(array_column($vals, '1')),
                     'on' => $onR == '0d 00:00' ? 0 : $onR,
                     'off' => $offR == '0d 00:00' ? 0 : $offR,
                 ];
+
+                $layers[] = (object)['title' => $title, 'data' => $data];
+                if (isset($field->color)) $colors[$key] = $field->color;
             }
-            $charts[$key]->ranges = $ranges;
+            $min = floor((min(array_column($ranges, 'min')) - 1));
+            $max = ceil((max(array_column($ranges, 'max')) + 1));
+            if ($min < 0) $min = 0;
+            $k = implode('_', array_column($array, 'key'));
+            $charts[$k] = (object)['ranges' => $ranges, 'chart' => (object)[
+                'canvas' => "#chart_$k canvas",
+                'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
+                'dataSuffix' => count($suffixes) === 1 ? reset($suffixes) : null,
+                'dataType' => 'float',
+                'zoom' => ['yMin' => $min, 'yMax' => $max],
+                'zeroFloor' => false,
+                'autoHeadroom' => false,
+                'layers' => $layers,
+                'colors' => $colors,
+            ]];
         }
 
-        return (object)[
-            'dev' => $dev,
-            'current' => (object)$cur,
-            'from' => date_create($from)->format('Y-m-d H:i'),
-            'to' => date_create($to)->format('Y-m-d H:i'),
-            'charts' => $charts,
-            'urls' => (object)[
-                'buttons' => [
-                    '24H' => http_build_query($qChart),
-                    'Today' => http_build_query(array_merge($qChart, [
-                        'from' => date_create()->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create()->setTime(0, 0)->modify('+1day')->format('Y-m-d H:i'),
-                    ])),
-                    'Week' => http_build_query(array_merge($qChart, [
-                        'from' => date_create('this monday')
-                            ->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create('next monday')
-                            ->setTime(0, 0)->format('Y-m-d H:i'),
-                    ])),
-                    'Month' => http_build_query(array_merge($qChart, [
-                        'from' => date_create('first day of this month')
-                            ->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create('first day of next month')
-                            ->setTime(0, 0)->format('Y-m-d H:i'),
-                    ])),
-                ],
-                'back' => http_build_query(array_merge($qChart, [
-                    'from' => date_create($from)->add(date_create($to)
-                        ->diff(date_create($from)))->format('Y-m-d H:i'),
-                    'to' => date_create($from)->format('Y-m-d H:i'),
-                ])),
-                'fwd' => http_build_query(array_merge($qChart, [
-                    'from' => date_create($to)->format('Y-m-d H:i'),
-                    'to' => date_create($to)->add(date_create($from)
-                        ->diff(date_create($to)))->format('Y-m-d H:i'),
-                ])),
-            ],
-        ];
+        return (object)self::chartsData($dev, $cur, $charts, $from, $to);
     }
 
     protected static function dataJsonRows(array $configs): array
@@ -267,5 +216,53 @@ class Html
         }
 
         return $result ?? [];
+    }
+
+    protected static function chartsData(
+        Dev $dev,
+        array $cur,
+        array $charts,
+        string $from,
+        string $to
+    ): stdClass {
+        $query = ['chart' => $dev->get('name')];
+        return (object)[
+            'dev' => $dev,
+            'current' => (object)$cur,
+            'from' => date_create($from)->format('Y-m-d H:i'),
+            'to' => date_create($to)->format('Y-m-d H:i'),
+            'charts' => $charts,
+            'urls' => (object)[
+                'buttons' => [
+                    '24H' => http_build_query($query),
+                    'Today' => http_build_query(array_merge($query, [
+                        'from' => date_create()->setTime(0, 0)->format('Y-m-d H:i'),
+                        'to' => date_create()->setTime(0, 0)->modify('+1day')->format('Y-m-d H:i'),
+                    ])),
+                    'Week' => http_build_query(array_merge($query, [
+                        'from' => date_create('this monday')
+                            ->setTime(0, 0)->format('Y-m-d H:i'),
+                        'to' => date_create('next monday')
+                            ->setTime(0, 0)->format('Y-m-d H:i'),
+                    ])),
+                    'Month' => http_build_query(array_merge($query, [
+                        'from' => date_create('first day of this month')
+                            ->setTime(0, 0)->format('Y-m-d H:i'),
+                        'to' => date_create('first day of next month')
+                            ->setTime(0, 0)->format('Y-m-d H:i'),
+                    ])),
+                ],
+                'back' => http_build_query(array_merge($query, [
+                    'from' => date_create($from)->add(date_create($to)
+                        ->diff(date_create($from)))->format('Y-m-d H:i'),
+                    'to' => date_create($from)->format('Y-m-d H:i'),
+                ])),
+                'fwd' => http_build_query(array_merge($query, [
+                    'from' => date_create($to)->format('Y-m-d H:i'),
+                    'to' => date_create($to)->add(date_create($from)
+                        ->diff(date_create($to)))->format('Y-m-d H:i'),
+                ])),
+            ],
+        ];
     }
 }
