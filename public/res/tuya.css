@@ -207,7 +207,15 @@ center {
         display: none;
     }
 
-    #dates #presets input+input+input {
-        display: none;
+    #dates #presets {
+        grid-template-columns: auto;
+    }
+
+    #dates #presets input {
+        width: 100%;
+    }
+
+    #current #status {
+        padding: 15px 10px;
     }
 }

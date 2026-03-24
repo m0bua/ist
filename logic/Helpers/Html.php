@@ -106,8 +106,9 @@ class Html
                 $layers[] = (object)['title' => $title, 'data' => $data];
                 if (isset($field->color)) $colors[$key] = $field->color;
             }
-            $min = floor((min(array_column($ranges, 'min')) - 1));
-            $max = ceil((max(array_column($ranges, 'max')) + 1));
+
+            $min = empty($ranges) ? 0 : floor((min(array_column($ranges, 'min')) - 1));
+            $max = empty($ranges) ? 0 : ceil((max(array_column($ranges, 'max')) + 1));
             if ($min < 0) $min = 0;
             $k = implode('_', array_column($array, 'key'));
             $charts[$k] = (object)['ranges' => $ranges, 'chart' => (object)[
@@ -234,13 +235,17 @@ class Html
             'charts' => $charts,
             'urls' => (object)[
                 'buttons' => [
+                    '1H' => http_build_query(array_merge($query, [
+                        'from' => date_create()->modify('-1hour+1min')->format('Y-m-d H:i'),
+                        'to' => date_create()->modify('+1min')->format('Y-m-d H:i'),
+                    ])),
                     '24H' => http_build_query($query),
                     'Today' => http_build_query(array_merge($query, [
                         'from' => date_create()->setTime(0, 0)->format('Y-m-d H:i'),
                         'to' => date_create()->setTime(0, 0)->modify('+1day')->format('Y-m-d H:i'),
                     ])),
                     'Week' => http_build_query(array_merge($query, [
-                        'from' => date_create('this monday')
+                        'from' => date_create('monday this week')
                             ->setTime(0, 0)->format('Y-m-d H:i'),
                         'to' => date_create('next monday')
                             ->setTime(0, 0)->format('Y-m-d H:i'),
