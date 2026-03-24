@@ -74,12 +74,13 @@ class Tuya implements Point
 
     public static function fields(Dev $dev, array $extraFields = [])
     {
-        $fiels = $dev->get('params.tData.fields', 'voltage');
-        $fiels = [is_array($fiels) ? $fiels : [$fiels]];
+        $fields = $dev->get('params.tData.fields', 'voltage');
+        $fields = [$dev->get('params.tData.fieldsName', 1) =>
+        is_array($fields) ? $fields : [$fields]];
+        $fields = array_merge($fields, $extraFields);
         if ($f = $dev->get('params.tData.extrafields'))
-            $fiels = array_merge($fiels, $f);
-        $fiels = array_merge($fiels, $extraFields);
-        $fiels = array_map(fn($i) => Helper::pluck(array_map(function ($k, $i) {
+            $fields = array_merge($fields, $f);
+        $fields = array_map(fn($i) => Helper::pluck(array_map(function ($k, $i) {
             if (is_array($i)) {
                 $key = $i['key'] ?? $i['name'] ?? null;
                 $result = (object)[
@@ -100,8 +101,8 @@ class Tuya implements Point
             }
 
             return $result;
-        }, array_keys($fiels), $i), 'key'), $fiels);
+        }, array_keys($fields), $i), 'key'), $fields);
 
-        return $fiels;
+        return $fields;
     }
 }

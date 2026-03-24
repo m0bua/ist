@@ -53,7 +53,7 @@ class Html
             "data->'$.online' as online",
             'JSON_OBJECT(' . implode(', ', array_map(
                 fn($i) => "'$i->key', $i->sql",
-                call_user_func_array('array_merge', $fields)
+                call_user_func_array('array_merge', array_values($fields))
             )) . ') as fields'
         ]);
         $where = $curWhere = "t_id = " . $dev->get('address');
@@ -70,7 +70,7 @@ class Html
         (object)array_merge((array)$i, ['value' =>
         $field[$k]]), $i, array_keys($i)), $fields);
 
-        foreach ($fields as $fArray) {
+        foreach ($fields as $fKey => $fArray) {
             $layers = [];
             $ranges = [];
             $suffixes = [];
@@ -120,9 +120,11 @@ class Html
             $max = empty($ranges) ? 0 : ceil((max(array_column($ranges, 'max')) + 1));
             if ($min < 0) $min = 0;
             $k = implode('_', array_column($fArray, 'key'));
+            $title = str_replace('_', ' ', $dev->get('params.name', 'Chart'));
+            if (!is_int($fKey)) $title .= " $fKey";
             $charts[$k] = (object)['ranges' => $ranges, 'chart' => (object)[
                 'canvas' => "#chart_$k canvas",
-                'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
+                'title' => $title,
                 'dataSuffix' => count(array_unique($suffixes)) === 1
                     ? reset($suffixes) : null,
                 'dataType' => 'float',
