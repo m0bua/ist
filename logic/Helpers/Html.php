@@ -40,44 +40,50 @@ class Html
         return $response;
     }
 
-    public static function getTData(array $params, array $fields = [])
+    public static function getTData(array $params)
     {
         $dev = array_filter(Dev::all(), fn($i) => $i->get('name') == $params['chart']
             && in_array($i->get('class'), self::CHART_CONFIGS));
         if (empty($dev)) Helper::redirect();
         $dev = reset($dev);
 
-        $fields = $dev->class()::fields($dev, $fields);
-        $suffixes = array_filter(array_unique(array_map(fn($i) =>
-        trim($i->suffix ?? ''), $fields)), fn($i) => !empty($i));
-        $mFields = call_user_func_array('array_merge', $fields);
-        $select = implode(', ', ["date", "data->'$.online' as online", 'JSON_OBJECT('
-            . implode(', ', array_map(fn($i) => "'$i->key', $i->sql", $mFields)) . ') as fields']);
-        $curWhere = $where = "t_id = " . $dev->get('address');
+        $fields = $dev->class()::fields($dev);
+        $select = implode(', ', [
+            'date',
+            "data->'$.online' as online",
+            'JSON_OBJECT(' . implode(', ', array_map(
+                fn($i) => "'$i->key', $i->sql",
+                call_user_func_array('array_merge', $fields)
+            )) . ') as fields'
+        ]);
+        $where = $curWhere = "t_id = " . $dev->get('address');
         $from = date_create($params['from'] ?? '-1day+1min')->format('Y-m-d H:i');
         $to = date_create($params['to'] ?? '+1min')->format('Y-m-d H:i');
         $where .= " AND date >= '$from' AND date <= '$to'";
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
 
+        $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
         $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
         if (empty($cur)) Helper::redirect();
-        $f = json_decode($cur['fields'], true);
+        $field = json_decode($cur['fields'], true);
         $cur['fields'] = array_map(fn($i) => array_map(fn($i, $k) =>
-        (object)array_merge((array)$i, ['value' => $f[$k]]), $i, array_keys($i)), $fields);
+        (object)array_merge((array)$i, ['value' =>
+        $field[$k]]), $i, array_keys($i)), $fields);
 
-        $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
-        foreach ($fields as $array) {
+        foreach ($fields as $fArray) {
             $layers = [];
             $ranges = [];
+            $suffixes = [];
             $colors = self::CHART_COLORS;
-            foreach (array_values($array) as $key => $field) {
+            foreach (array_values($fArray) as $key => $field) {
                 $title = ucfirst($field->key);
-                if (count($suffixes) > 1 && isset($field->suffix)) $title .= " ($field->suffix)";
+                $suffixes[] = $field->suffix;
+                if (isset($field->suffix)) $title .= " ($field->suffix)";
                 $data = array_map(fn($i) => [strtotime($i['date']), $i['online'] == 'true'
                     ? Helper::getArrayKey($i, "fields.$field->key") : 0], $entries);
                 $on = date_create();
                 $off = date_create();
-                foreach ($data ?? [] as $i) {
+                foreach ($data ?? [] as $i)
                     if ($i[1] > 0) {
                         if (empty($dOn)) $dOn = date_create('@' . $i[0]);
                         if (isset($dOff)) $off = ($off ?? date_create())
@@ -89,11 +95,14 @@ class Html
                             ->add($dOn->diff(date_create('@' . $i[0])));
                         unset($dOn);
                     }
-                }
-                if (isset($dOn)) $on = ($on ?? date_create())->add($dOn->diff(date_create('@' . $i[0])));
-                if (isset($dOff)) $off = ($off ?? date_create())->add($dOff->diff(date_create('@' . $i[0])));
-                $onR = date_create()->diff($on ?? date_create())->format('%ad %H:%I');
-                $offR = date_create()->diff($off ?? date_create())->format('%ad %H:%I');
+                if (isset($dOn)) $on = ($on ?? date_create())
+                    ->add($dOn->diff(date_create('@' . $i[0])));
+                if (isset($dOff)) $off = ($off ?? date_create())
+                    ->add($dOff->diff(date_create('@' . $i[0])));
+                $onR = date_create()->diff($on ?? date_create())
+                    ->format('%ad %H:%I');
+                $offR = date_create()->diff($off ?? date_create())
+                    ->format('%ad %H:%I');
                 $vals = array_filter($data, fn($i) => $i[1] > 0);
                 if (!empty($vals)) $ranges[] = (object)[
                     'title' => $title,
@@ -111,11 +120,12 @@ class Html
             $min = empty($ranges) ? 0 : floor((min(array_column($ranges, 'min')) - 1));
             $max = empty($ranges) ? 0 : ceil((max(array_column($ranges, 'max')) + 1));
             if ($min < 0) $min = 0;
-            $k = implode('_', array_column($array, 'key'));
+            $k = implode('_', array_column($fArray, 'key'));
             $charts[$k] = (object)['ranges' => $ranges, 'chart' => (object)[
                 'canvas' => "#chart_$k canvas",
                 'title' => str_replace('_', ' ', $dev->get('params.name', 'Chart')),
-                'dataSuffix' => count($suffixes) === 1 ? reset($suffixes) : null,
+                'dataSuffix' => count(array_unique($suffixes)) === 1
+                    ? reset($suffixes) : null,
                 'dataType' => 'float',
                 'zoom' => ['yMin' => $min, 'yMax' => $max],
                 'zeroFloor' => false,
