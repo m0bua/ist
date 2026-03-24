@@ -116,8 +116,8 @@ class Html
                 if (isset($field->color)) $colors[$key] = $field->color;
             }
 
-            $min = empty($ranges) ? 0 : floor((min(array_column($ranges, 'min')) - 1));
-            $max = empty($ranges) ? 0 : ceil((max(array_column($ranges, 'max')) + 1));
+            $min = empty($ranges) ? 0 : min(array_column($ranges, 'min'));
+            $max = empty($ranges) ? 0 : max(array_column($ranges, 'max'));
             if ($min < 0) $min = 0;
             $k = implode('_', array_column($fArray, 'key'));
             $title = str_replace('_', ' ', $dev->get('params.name', 'Chart'));
