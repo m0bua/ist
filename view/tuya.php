@@ -84,11 +84,12 @@
             <?php if (empty($chart->ranges)): ?>
                 <div id="empty">No data!</div>
             <?php else: ?><br>
-                <?php foreach ($chart->ranges as $k => $r): ?>
+                <?php foreach ($chart->ranges as $k => $range): ?>
                     <center style="color:<?= $chart->chart->colors[$k] ?>">
-                        <?= $r->title ?>: <?= $r->min ?> - <?= $r->max ?><?php if (!empty($r->on)): ?>,
-                        on: <?= $r->on ?><?php endif ?><?php if (!empty($r->off)): ?>,
-                        off: <?= $r->off ?><?php endif ?>.
+                        <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
+                        on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
+                        off: <?= $range->off ?><?php endif ?>
+                        (entries: <?= $range->count  ?>).
                     </center>
                 <?php endforeach ?>
                 <div id="chart_<?= $key ?>" class="chart"><canvas></canvas></div>

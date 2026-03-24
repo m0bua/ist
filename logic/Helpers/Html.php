@@ -101,6 +101,7 @@ class Html
                     'max' => max(array_column($vals, '1')),
                     'on' => $onR == '0d 00:00' ? 0 : $onR,
                     'off' => $offR == '0d 00:00' ? 0 : $offR,
+                    'count' => count($data),
                 ];
 
                 $layers[] = (object)['title' => $title, 'data' => $data];
