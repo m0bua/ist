@@ -7,7 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
-  <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603251636">
+  <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603251745">
   <script src="res/chart.min.js"></script>
 </head>
 
@@ -25,7 +25,7 @@
         <?php if ($data->current->online === 'true'): ?>
           <?php foreach ($data->current->fields as $fields): ?>
             <p>
-              <?php  $decimals = max(array_map(fn($i) => strlen(substr(strrchr((string)$i->value, "."), 1)), $fields)) ?>
+              <?php $decimals = max(array_map(fn($i) => strlen(substr(strrchr((string)$i->value, "."), 1)), $fields)) ?>
               <?php foreach ($fields as $k => $field) if (!empty($field)): ?>
             <div class="field">
               <?php if (isset($field->name)): ?><span class="name"><?= $field->name ?>:</span><?php endif ?>
@@ -88,15 +88,15 @@
       <?php if (empty($chart->ranges)): ?>
         <div id="empty">No data!</div>
       <?php else: ?><br>
+        <div id="chart_<?= $key ?>" class="chart"><canvas></canvas></div>
         <?php foreach ($chart->ranges as $k => $range): ?>
-          <center style="color:<?= $chart->chart->colors[$k] ?>">
+          <center class="min_max" style="color:<?= $chart->chart->colors[$k] ?>">
             <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
             on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
             off: <?= $range->off ?><?php endif ?>
             (entries: <?= $range->count  ?>).
           </center>
         <?php endforeach ?>
-        <div id="chart_<?= $key ?>" class="chart"><canvas></canvas></div>
         <script>
           c = new Chart(<?= json_encode($chart->chart) ?>);
           c.dateStyles = {
