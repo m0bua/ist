@@ -163,6 +163,10 @@ center {
         margin: 1em auto;
     }
 
+    #current #status h1 .field {
+        display: block;
+    }
+
     #dates span {
         display: none;
     }
@@ -183,10 +187,6 @@ center {
 }
 
 @media screen and (max-width: 500px) {
-    #current #status h1 .field {
-        display: block;
-    }
-
     #dates {
         margin: .5em 1em;
         padding: .1em 3em;
