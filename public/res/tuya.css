@@ -44,7 +44,7 @@ center {
     width: fit-content;
     max-width: 80vw;
     margin: 1em auto;
-    padding: 1.5em 5em;
+    padding: 1.5em 2em;
     text-align: center;
     border-radius: 1em;
 }
@@ -57,11 +57,16 @@ center {
     margin-top: 10px;
 }
 
-#status {
-    width: auto;
-    margin: 1em auto;
-    padding: 10px 30px;
-    text-align: center;
+#current #status h1 .field {
+    display: inline-block;
+}
+
+#current #status h1 .field span {
+    font-size: .5em;
+}
+
+#current #status h1 .field .name {
+    opacity: .5;
 }
 
 #empty {
@@ -111,9 +116,10 @@ center {
     padding: 0;
 }
 
-#dates input[type=submit],
-#dates input[type=button] {
+#dates input {
+    display: inline-block;
     padding: 5px 1.5em;
+    max-width: 100%;
 }
 
 #dates span {
@@ -154,13 +160,7 @@ center {
     }
 
     #dates * {
-        display: block;
         margin: 1em auto;
-    }
-
-    #dates #presets {
-        margin: auto;
-        padding: 0;
     }
 
     #dates span {
@@ -168,9 +168,13 @@ center {
     }
 
     #dates #presets {
-        display: grid;
-        grid-template-columns: auto auto;
+        margin: auto;
+        padding: 0;
+        text-align: center;
+    }
 
+    #dates input {
+        margin: .5em;
     }
 
     #chartContent {
@@ -179,9 +183,18 @@ center {
 }
 
 @media screen and (max-width: 500px) {
+    #current #status h1 .field {
+        display: block;
+    }
+
     #dates {
         margin: .5em 1em;
         padding: .1em 3em;
+    }
+
+    #dates input {
+        padding: 10px 1.5em;
+        margin: .3em;
     }
 
     #dates a:first-child {
@@ -205,14 +218,6 @@ center {
 
     #dates a {
         display: none;
-    }
-
-    #dates #presets {
-        grid-template-columns: auto;
-    }
-
-    #dates #presets input {
-        width: 100%;
     }
 
     #current #status {

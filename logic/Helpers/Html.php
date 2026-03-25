@@ -247,11 +247,11 @@ class Html
             'charts' => $charts,
             'urls' => (object)[
                 'buttons' => [
-                    '1H' => http_build_query(array_merge($query, [
+                    'Default' => http_build_query($query),
+                    'Hour' => http_build_query(array_merge($query, [
                         'from' => date_create()->modify('-1hour+1min')->format('Y-m-d H:i'),
                         'to' => date_create()->modify('+1min')->format('Y-m-d H:i'),
                     ])),
-                    '24H' => http_build_query($query),
                     'Today' => http_build_query(array_merge($query, [
                         'from' => date_create()->setTime(0, 0)->format('Y-m-d H:i'),
                         'to' => date_create()->setTime(0, 0)->modify('+1day')->format('Y-m-d H:i'),
