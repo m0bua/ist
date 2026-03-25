@@ -125,6 +125,10 @@ center {
     max-width: 100%;
 }
 
+#dates input[type=submit] {
+    display: none;
+}
+
 #dates span {
     margin: 0;
     padding: 0;
@@ -196,8 +200,8 @@ center {
         margin: .5em;
     }
 
-    #chartContent {
-        aspect-ratio: 4/3;
+    .chart {
+        aspect-ratio: 5/3;
     }
 }
 

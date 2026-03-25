@@ -7,7 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
-  <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603251826">
+  <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603251837">
   <script src="res/chart.min.js"></script>
 </head>
 
@@ -72,7 +72,7 @@
       <input name="from" type="datetime-local" value="<?= $data->from ?>">
       <span>-</span>
       <input name="to" type="datetime-local" value="<?= $data->to ?>">
-      <input type="submit" value="Go" style="display:none">
+      <input type="submit" value="Go">
       <a class="right" href="?<?= $data->urls->fwd ?>">
         <svg width="1.5em" height="1.5em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path opacity="0.15" d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" fill="#777" />
