@@ -59,6 +59,8 @@ center {
 
 #current #status h1 .field {
     display: inline-block;
+    display: table-cell;
+    padding: 0 .2em;
 }
 
 #current #status h1 .field span {
@@ -67,6 +69,7 @@ center {
 
 #current #status h1 .field .name {
     opacity: .5;
+    vertical-align: middle;
 }
 
 #empty {

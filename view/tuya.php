@@ -7,7 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
-  <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603251745">
+  <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603251826">
   <script src="res/chart.min.js"></script>
 </head>
 
@@ -89,14 +89,6 @@
         <div id="empty">No data!</div>
       <?php else: ?><br>
         <div id="chart_<?= $key ?>" class="chart"><canvas></canvas></div>
-        <?php foreach ($chart->ranges as $k => $range): ?>
-          <center class="min_max" style="color:<?= $chart->chart->colors[$k] ?>">
-            <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
-            on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
-            off: <?= $range->off ?><?php endif ?>
-            (entries: <?= $range->count  ?>).
-          </center>
-        <?php endforeach ?>
         <script>
           c = new Chart(<?= json_encode($chart->chart) ?>);
           c.dateStyles = {
@@ -133,6 +125,19 @@
           };
           c.render();
         </script>
+        <?php $ranges = array_filter($chart->ranges, fn($i)
+        => strpos(strtolower($i->title), 'total') === false) ?>
+        <?php if (count($ranges) > 1): ?>
+          <center><?= min(array_column($ranges, 'min')) ?> - <?= max(array_column($ranges, 'max')) ?></center>
+        <?php endif ?>
+        <?php foreach ($chart->ranges as $k => $range): ?>
+          <center class="min_max" style="color:<?= $chart->chart->colors[$k] ?>">
+            <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
+            on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
+            off: <?= $range->off ?><?php endif ?>
+            (entries: <?= $range->count  ?>).
+          </center>
+        <?php endforeach ?>
       <?php endif ?>
     <?php endforeach ?>
   </section>
