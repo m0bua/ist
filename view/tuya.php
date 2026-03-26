@@ -96,43 +96,7 @@
       <?php if (empty($chart->ranges)): ?>
         <div id="empty">No data!</div>
       <?php else: ?><br>
-        <div id="chart_<?= $key ?>" class="chart"><canvas></canvas></div>
-        <script>
-          c = new Chart(<?= json_encode($chart->chart) ?>);
-          c.dateStyles = {
-            year: {
-              month: 'numeric',
-              day: 'numeric'
-            },
-            month: {
-              month: 'numeric',
-              day: 'numeric'
-            },
-            day: {
-              hour: 'numeric',
-              hour12: false
-            },
-            hour: {
-              hour: 'numeric',
-              minute: 'numeric',
-              hour12: false
-            },
-            minute: {
-              hour: 'numeric',
-              minute: 'numeric',
-              hour12: false
-            },
-            tooltip: {
-              year: 'numeric',
-              month: 'numeric',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: 'numeric',
-              hour12: false
-            }
-          };
-          c.render();
-        </script>
+        <div id="chart_<?= $key ?>" class="chart" data-json='<?= json_encode($chart->chart) ?>'><canvas></canvas></div>
         <?php $ranges = array_filter($chart->ranges, fn($i)
         => strpos(strtolower($i->title), 'total') === false) ?>
         <?php if (count($ranges) > 1): ?>
@@ -148,6 +112,19 @@
         <?php endforeach ?>
       <?php endif ?>
     <?php endforeach ?>
+
+    <script>
+      <?php
+      $a = ['year' => 'numeric', 'month' => 'numeric', 'day' => 'numeric', 'hour' => 'numeric', 'minute' => 'numeric', 'hour12' => false];
+      $d = ['hour' => 'numeric', 'minute' => 'numeric', 'hour12' => false];
+      $dates = ['year' => $a, 'month' => $a, 'day' => $d, 'hour' => $a, 'minute' => $a, 'tooltip' => $a];
+      ?>
+      Array.from(document.getElementsByClassName('chart')).forEach(function(el) {
+        c = new Chart(JSON.parse(el.dataset.json));
+        c.dateStyles = <?= json_encode($dates) ?>;
+        c.render();
+      });
+    </script>
   </section>
 </body>
 
