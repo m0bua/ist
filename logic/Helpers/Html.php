@@ -148,7 +148,7 @@ class Html
 
                 if (isset($field->color)) $colors[$key] = $field->color;
                 $layers[] = (object)(self::skip("show_{$fKey}_{$key}")
-                    ? [] : ['title' => $title, 'data' => $data]);
+                    ? ['title' => $title] : ['title' => $title, 'data' => $data]);
             }
 
             $min = empty($ranges) ? 0 : min(array_column($ranges, 'min'));
