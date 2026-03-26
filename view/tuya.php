@@ -117,7 +117,7 @@
       <?php
       $a = ['year' => 'numeric', 'month' => 'numeric', 'day' => 'numeric', 'hour' => 'numeric', 'minute' => 'numeric', 'hour12' => false];
       $d = ['hour' => 'numeric', 'minute' => 'numeric', 'hour12' => false];
-      $dates = ['year' => $a, 'month' => $a, 'day' => $d, 'hour' => $a, 'minute' => $a, 'tooltip' => $a];
+      $dates = ['year' => $a, 'month' => $a, 'day' => $d, 'hour' => $d, 'minute' => $d, 'tooltip' => $a];
       ?>
       Array.from(document.getElementsByClassName('chart')).forEach(function(el) {
         c = new Chart(JSON.parse(el.dataset.json));
