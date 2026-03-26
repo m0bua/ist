@@ -20,30 +20,35 @@
       </svg>
       Back
     </a>
-    <div id="status" style="background-color:dark<?= $data->dev->class()::COLORS[$data->dev->get('status')] ?>">
+    <label id="status" for="showMore" style="background-color:dark<?= $data->dev->class()::COLORS[$data->dev->get('status')] ?>">
       <h1>
         <?php if ($data->current->online === 'true'): ?>
+          <input type="checkbox" id="showMore">
           <?php foreach ($data->current->fields as $fields): ?>
-            <p>
-              <?php $decimals = max(array_map(fn($i) => strlen(substr(strrchr((string)$i->value, "."), 1)), $fields)) ?>
+            <?php $decimals = max(array_map(fn($i) => strlen(substr(strrchr((string)$i->value, "."), 1)), $fields)) ?>
+            <center>
               <?php foreach ($fields as $k => $field) if (!empty($field)): ?>
-            <div class="field">
-              <?php if (isset($field->name)): ?><span class="name"><?= $field->name ?>:</span><?php endif ?>
-              <strong><?= number_format($field->value, $decimals) ?></strong><?php if (isset($field->suffix)): ?><span class="suffix"><?= $field->suffix ?></span><?php endif ?>
-            </div>
-          <?php endif ?>
-          </p>
-          <?php break ?>
-        <?php endforeach ?>
-      <?php else: ?>
-        Off
-      <?php endif ?>
+                <div class="field">
+                  <?php if (isset($field->name)): ?>
+                    <span class="name" style="color:<?= $field->color ?? 'white' ?>"><?= $field->name ?>:</span>
+                  <?php endif ?>
+                  <strong><?= number_format($field->value, $decimals) ?></strong>
+                  <?php if (isset($field->suffix)): ?>
+                    <span class="suffix"><?= $field->suffix ?></span>
+                  <?php endif ?>
+                </div>
+              <?php endif ?>
+            </center>
+          <?php endforeach ?>
+        <?php else: ?>
+          Off
+        <?php endif ?>
       </h1>
-      <p>
-        Updated at
-        <?= str_replace(' ', '&nbsp;', date_create($data->current->date)->format('Y-m-d H:i')) ?>
-      </p>
-    </div>
+    </label>
+    <center>
+      Updated at
+      <?= str_replace(' ', '&nbsp;', date_create($data->current->date)->format('Y-m-d H:i')) ?>
+    </center>
     <?php foreach ($data->dev->get('dates') as $k => $i): ?>
       <?php if (!empty($i)): ?>
         <center style="color:<?= $data->dev->class()::COLORS[$k] ?>">

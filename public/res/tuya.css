@@ -53,14 +53,28 @@ center {
     margin: 0;
 }
 
-#current #status *+p {
-    margin-top: 10px;
+#current #status {
+    display: block;
+    user-select: none;
+}
+
+#current #status h1 #showMore {
+    display: none;
+}
+
+#current #status h1 #showMore~center+center {
+    margin-top: .3em;
+}
+
+#current #status h1 #showMore:not(:checked)~center+center {
+    display: none;
 }
 
 #current #status h1 .field {
     display: inline-block;
     display: table-cell;
     padding: 0 .2em;
+    word-spacing: -1em;
 }
 
 #current #status h1 .field span {
@@ -68,8 +82,9 @@ center {
 }
 
 #current #status h1 .field .name {
-    opacity: .5;
+    opacity: .7;
     vertical-align: middle;
+    margin-right: .3em;
 }
 
 #empty {
@@ -174,16 +189,20 @@ center {
         margin: .5em auto;
     }
 
+    #current #status h1 .field {
+        display: block;
+    }
+
+    #current #status h1 #showMore~center+center {
+        margin-top: .7em;
+    }
+
     #dates {
         margin: .5em 3em;
     }
 
     #dates * {
         margin: 1em auto;
-    }
-
-    #current #status h1 .field {
-        display: block;
     }
 
     #dates span {
