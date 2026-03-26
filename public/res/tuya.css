@@ -28,6 +28,14 @@ center {
     margin: .3em 0;
 }
 
+.show_toggle * {
+    user-select: none;
+}
+
+.show_toggle input[type=checkbox] {
+    display: none;
+}
+
 #back {
     position: absolute;
     top: -1.7em;
@@ -55,11 +63,6 @@ center {
 
 #current #status {
     display: block;
-    user-select: none;
-}
-
-#current #status h1 #showMore {
-    display: none;
 }
 
 #current #status h1 #showMore~center+center {
@@ -174,6 +177,16 @@ center {
     margin: .3em;
 }
 
+#chart .show_toggle> :checked~.min_max:before {
+    content: '-';
+    color: white;
+}
+
+#chart .show_toggle> :not(:checked)~.min_max:before {
+    content: '+';
+    color: white;
+}
+
 @media screen and (max-width: 1600px) {
     #chart .min_max {
         display: block;
@@ -217,6 +230,10 @@ center {
 
     #dates input {
         margin: .5em;
+    }
+
+    #chart .min_max {
+        padding: 1em 0;
     }
 
     .chart {

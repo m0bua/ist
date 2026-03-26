@@ -137,6 +137,7 @@ class Html
                     ->format('%ad %H:%I');
                 $vals = array_filter($data, fn($i) => $i[1] > 0);
                 if (!empty($vals)) $ranges[] = (object)[
+                    'key' => $key,
                     'title' => $title,
                     'min' => min(array_column($vals, '1')),
                     'max' => max(array_column($vals, '1')),
@@ -145,8 +146,9 @@ class Html
                     'count' => count($data),
                 ];
 
-                $layers[] = (object)['title' => $title, 'data' => $data];
                 if (isset($field->color)) $colors[$key] = $field->color;
+                $layers[] = (object)(self::skip("show_{$fKey}_{$key}")
+                    ? [] : ['title' => $title, 'data' => $data]);
             }
 
             $min = empty($ranges) ? 0 : min(array_column($ranges, 'min'));
@@ -155,7 +157,7 @@ class Html
             $k = implode('_', array_column($fArray, 'key'));
             $title = str_replace('_', ' ', $dev->get('params.name', 'Chart'));
             if (!is_int($fKey)) $title .= " $fKey";
-            $charts[$k] = (object)['ranges' => $ranges, 'chart' => (object)[
+            $charts[$k] = (object)['key' => $fKey, 'ranges' => $ranges, 'chart' => (object)[
                 'canvas' => "#chart_$k canvas",
                 'title' => $title,
                 'dataSuffix' => count(array_unique($suffixes)) === 1
@@ -170,6 +172,13 @@ class Html
         }
 
         return (object)self::chartsData($dev, $cur, $charts, $from, $to, $preset);
+    }
+
+    public static function skip($key = null)
+    {
+        $cookie = explode('||', $_COOKIE['toggle_inputs']);
+
+        return empty($key) ? $cookie : in_array($key, $cookie);
     }
 
     protected static function dataJsonRows(array $configs): array

@@ -1,4 +1,9 @@
-<?php $data = \Helpers\Html::getTData($_GET) ?>
+<?php
+
+use Helpers\Html;
+
+$data = Html::getTData($_GET);
+?>
 
 <!DOCTYPE html>
 <html>
@@ -8,7 +13,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
   <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603261010">
-  <script src="res/chart.min.js"></script>
 </head>
 
 <body id="body" class="dark">
@@ -20,10 +24,10 @@
       </svg>
       Back
     </a>
-    <label id="status" for="showMore" style="background-color:dark<?= $data->dev->class()::COLORS[$data->dev->get('status')] ?>">
+    <label id="status" for="showMore" class="show_toggle" style="background-color:dark<?= $data->dev->class()::COLORS[$data->dev->get('status')] ?>">
       <h1>
         <?php if ($data->current->online === 'true'): ?>
-          <input type="checkbox" id="showMore">
+          <input type="checkbox" id="showMore" name="show_more" <?= Html::skip('show_more') ? 'checked' : '' ?>>
           <?php foreach ($data->current->fields as $fields): ?>
             <?php $decimals = max(array_map(fn($i) => strlen(substr(strrchr((string)$i->value, "."), 1)), $fields)) ?>
             <center>
@@ -85,12 +89,6 @@
         </svg>
       </a>
     </form>
-    <script>
-      var match = window.matchMedia || window.msMatchMedia;
-      if (match ? match('(pointer:coarse)').matches : false)
-        document.querySelectorAll('[type="datetime-local"]').forEach((el) =>
-          el.addEventListener('change', (e) => e.target.form.submit()));
-    </script>
 
     <?php foreach ($data->charts as $key => $chart): ?>
       <?php if (empty($chart->ranges)): ?>
@@ -103,17 +101,37 @@
           <center><?= min(array_column($ranges, 'min')) ?> - <?= max(array_column($ranges, 'max')) ?></center>
         <?php endif ?>
         <?php foreach ($chart->ranges as $k => $range): ?>
-          <center class="min_max" style="color:<?= $chart->chart->colors[$k] ?>">
-            <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
-            on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
-            off: <?= $range->off ?><?php endif ?>
-            (entries: <?= $range->count  ?>).
-          </center>
+          <label class="show_toggle">
+            <input type="checkbox" id="showMore" name="show_<?= $chart->key ?>_<?= $range->key ?>"
+              <?= Html::skip("show_{$chart->key}_{$range->key}") ? 'checked' : '' ?> data-reload="true">
+            <center class="min_max" style="color:<?= $chart->chart->colors[$k] ?>">
+              <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
+              on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
+              off: <?= $range->off ?><?php endif ?>
+              (entries: <?= $range->count  ?>).
+            </center>
+          </label>
         <?php endforeach ?>
       <?php endif ?>
     <?php endforeach ?>
 
+    <script src="res/chart.min.js"></script>
     <script>
+      let toggle = '.show_toggle input[type=checkbox]';
+      document.querySelectorAll(toggle).forEach(function(el) {
+        el.addEventListener('change', function(event) {
+          var cookie = Array.from(document.querySelectorAll(toggle + ':checked'))
+            .map((i) => i.name).join('||');
+          setCookie('toggle_inputs', cookie);
+          if (event.target.dataset.reload == 'true') window.location.reload();
+        });
+      });
+
+      var match = window.matchMedia || window.msMatchMedia;
+      if (match ? match('(pointer:coarse)').matches : false)
+        document.querySelectorAll('[type="datetime-local"]').forEach((el) =>
+          el.addEventListener('change', (e) => e.target.form.submit()));
+
       <?php
       $a = ['year' => 'numeric', 'month' => 'numeric', 'day' => 'numeric', 'hour' => 'numeric', 'minute' => 'numeric', 'hour12' => false];
       $d = ['hour' => 'numeric', 'minute' => 'numeric', 'hour12' => false];
@@ -124,6 +142,19 @@
         c.dateStyles = <?= json_encode($dates) ?>;
         c.render();
       });
+
+      function setCookie(key, val = null, age = 0, site = 'lax') {
+        dom = document.domain.split('.');
+        dom[0] = '';
+
+        cookie = key + '=' + val +
+          '; domain=' + dom.join('.') +
+          '; SameSite=' + site;
+
+        if (age != 0) cookie += '; max-age=' + age;
+
+        document.cookie = cookie
+      }
     </script>
   </section>
 </body>
