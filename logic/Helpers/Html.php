@@ -2,7 +2,7 @@
 
 namespace Helpers;
 
-use Auth, Dev, stdClass;
+use Auth, Dev, stdClass, DateTime;
 
 class Html
 {
@@ -16,6 +16,7 @@ class Html
         '#00E396',
         '#546E7A',
     ];
+    const DATE_FORMAT = 'Y-m-d H:i';
 
     public static function getClientsJson(): string
     {
@@ -57,9 +58,41 @@ class Html
             )) . ') as fields'
         ]);
         $where = $curWhere = "t_id = " . $dev->get('address');
-        $from = date_create($params['from'] ?? '-1day+1min')->format('Y-m-d H:i');
-        $to = date_create($params['to'] ?? '+1min')->format('Y-m-d H:i');
-        $where .= " AND date >= '$from' AND date <= '$to'";
+
+        preg_match('/([A-z]*)([+ -]?)(\d*)/', $params['preset'] ?? '', $preset);
+        [$from, $to] = match ($preset[1] ?? null) {
+            'hour' => [
+                date_create()->modify('-1hour+1min'),
+                date_create()->modify('+1min')
+            ],
+            'today' => [
+                date_create()->setTime(0, 0),
+                date_create()->setTime(0, 0)->modify('+1day')
+            ],
+            'week' => [
+                date_create('monday this week')->setTime(0, 0),
+                date_create('next monday')->setTime(0, 0)
+            ],
+            'month' => [
+                date_create('first day of this month')->setTime(0, 0),
+                date_create('first day of next month')->setTime(0, 0)
+            ],
+            default => [
+                date_create($params['from'] ?? '-1day+1min'),
+                date_create($params['to'] ?? '+1min')
+            ],
+        };
+
+        if (is_numeric($preset[3])) {
+            [$diff, $count] = [$preset[2] == '-' ? $to->diff($from) : $from->diff($to), $preset[3]];
+            while ($count-- > 0) [$from, $to] = [$from->add($diff), $to->add($diff)];
+            $preset = [$preset[1], $preset[2] == '-' ? 0 - $preset[3] : $preset[3]];
+        } else $preset = [$preset[1] ?? '', 0];
+
+        $where .= strtr(' AND date >= "$from" AND date <= "$to"', [
+            '$from' => $from->format(self::DATE_FORMAT),
+            '$to' => $to->format(self::DATE_FORMAT),
+        ]);
         $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
 
         $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
@@ -136,7 +169,7 @@ class Html
             ]];
         }
 
-        return (object)self::chartsData($dev, $cur, $charts, $from, $to);
+        return (object)self::chartsData($dev, $cur, $charts, $from, $to, $preset);
     }
 
     protected static function dataJsonRows(array $configs): array
@@ -235,50 +268,34 @@ class Html
         Dev $dev,
         array $cur,
         array $charts,
-        string $from,
-        string $to
+        DateTime $from,
+        DateTime $to,
+        array $preset
     ): stdClass {
         $query = ['chart' => $dev->get('name')];
+        $back = $fwd = $preset;
+        if (!$back[0]) unset($back[0]);
+        if (!--$back[1]) unset($back[1]);
+        elseif ($back[1] > 0) $back[1] = " $back[1]";
+        if (!$fwd[0]) unset($fwd[0]);
+        if (!++$fwd[1]) unset($fwd[1]);
+        elseif ($fwd[1] > 0) $fwd[1] = " $fwd[1]";
         return (object)[
             'dev' => $dev,
             'current' => (object)$cur,
-            'from' => date_create($from)->format('Y-m-d H:i'),
-            'to' => date_create($to)->format('Y-m-d H:i'),
+            'from' => $from->format(self::DATE_FORMAT),
+            'to' => $to->format(self::DATE_FORMAT),
             'charts' => $charts,
             'urls' => (object)[
                 'buttons' => [
                     'Default' => http_build_query($query),
-                    'Hour' => http_build_query(array_merge($query, [
-                        'from' => date_create()->modify('-1hour+1min')->format('Y-m-d H:i'),
-                        'to' => date_create()->modify('+1min')->format('Y-m-d H:i'),
-                    ])),
-                    'Today' => http_build_query(array_merge($query, [
-                        'from' => date_create()->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create()->setTime(0, 0)->modify('+1day')->format('Y-m-d H:i'),
-                    ])),
-                    'Week' => http_build_query(array_merge($query, [
-                        'from' => date_create('monday this week')
-                            ->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create('next monday')
-                            ->setTime(0, 0)->format('Y-m-d H:i'),
-                    ])),
-                    'Month' => http_build_query(array_merge($query, [
-                        'from' => date_create('first day of this month')
-                            ->setTime(0, 0)->format('Y-m-d H:i'),
-                        'to' => date_create('first day of next month')
-                            ->setTime(0, 0)->format('Y-m-d H:i'),
-                    ])),
+                    'Hour' => http_build_query(array_merge($query, ['preset' => 'hour'])),
+                    'Today' => http_build_query(array_merge($query, ['preset' => 'today'])),
+                    'Week' => http_build_query(array_merge($query, ['preset' => 'week'])),
+                    'Month' => http_build_query(array_merge($query, ['preset' => 'month'])),
                 ],
-                'back' => http_build_query(array_merge($query, [
-                    'from' => date_create($from)->add(date_create($to)
-                        ->diff(date_create($from)))->format('Y-m-d H:i'),
-                    'to' => date_create($from)->format('Y-m-d H:i'),
-                ])),
-                'fwd' => http_build_query(array_merge($query, [
-                    'from' => date_create($to)->format('Y-m-d H:i'),
-                    'to' => date_create($to)->add(date_create($from)
-                        ->diff(date_create($to)))->format('Y-m-d H:i'),
-                ])),
+                'back' => http_build_query(array_merge($query, empty($back) ? [] : ['preset' => implode($back)])),
+                'fwd' => http_build_query(array_merge($query, empty($fwd) ? [] : ['preset' => implode($fwd)])),
             ],
         ];
     }
