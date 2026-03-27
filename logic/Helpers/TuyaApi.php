@@ -2,8 +2,8 @@
 
 namespace Helpers;
 
-use tuyapiphp\TuyaApi as Api;
 use Dev;
+use tuyapiphp\TuyaApi as Api;
 
 class TuyaApi extends Api
 {
@@ -12,7 +12,7 @@ class TuyaApi extends Api
     public static function get(Dev $cfg): ?object
     {
         $sql = 'SELECT * FROM tuya AS t LEFT JOIN tuya_log AS l ON l.t_id = t.id'
-            . ' AND l.date>=:dt WHERE t.id=:id ORDER BY l.date DESC LIMIT 1';
+            . ' AND l.date>=(:dt) WHERE t.id=:id ORDER BY l.date DESC LIMIT 1';
         $params = [
             ':id' => $cfg->get('address'),
             ':dt' => 'CURRENT_TIMESTAMP - INTERVAL ' . $cfg->get('wait', self::DELAY),
@@ -43,7 +43,7 @@ class TuyaApi extends Api
         return $res;
     }
 
-    private static function phaseParse($base64Data)
+    private static function phaseParse(string $base64Data): array
     {
         $hex = bin2hex(base64_decode($base64Data));
 
