@@ -9,16 +9,16 @@ use PDOStatement;
 
 class DB
 {
-    private static $dsn;
-    private static $username;
-    private static $password;
-    private static $options;
+    private static string $dsn;
+    private static string $username;
+    private static string $password;
+    private static array $options;
 
     private static array $tableMeta = [];
 
-    private $pdo;
+    private PDO $pdo;
 
-    public static function config(array $auth)
+    public static function config(array $auth): void
     {
         self::$dsn = "mysql:dbname={$auth['base']};host={$auth['host']}";
         self::$username = $auth['user'];
@@ -26,12 +26,12 @@ class DB
         self::$options = $auth['opt'] ?? null;
     }
 
-    public static function start()
+    public static function start(): self
     {
         return new self;
     }
 
-    public function __construct()
+    function __construct()
     {
         $this->pdo = new PDO(
             self::$dsn,
@@ -65,7 +65,7 @@ class DB
         }
     }
 
-    public function upsert(string $table, array $data)
+    public function upsert(string $table, array $data): bool
     {
         if (!isset(self::$tableMeta[$table])) {
             $schema = $this->all("DESCRIBE `$table` ");

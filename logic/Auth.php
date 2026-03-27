@@ -12,6 +12,7 @@ class Auth
 
     private const TABLE = 'auth';
     private const LOGIN_PATH = '/login.php';
+
     private static string $user;
 
     function __construct()
