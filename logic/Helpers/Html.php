@@ -57,7 +57,11 @@ class Html
                 call_user_func_array('array_merge', array_values($fields))
             )) . ') as fields'
         ]);
-        $where = $curWhere = "t_id = " . $dev->get('address');
+        $where = 't_id = :tId';
+        $wParams = [':tId' => $dev->get('address')];
+
+        $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
+        $cur = DB::start()->one(strtr($sql, ['{where}' => $where]) . ' DESC', $wParams);
 
         preg_match('/([A-z]*)([+ -]?)(\d*)/', $params['preset'] ?? '', $preset);
         [$from, $to] = match ($preset[1] ?? null) {
@@ -89,14 +93,11 @@ class Html
             $preset = [$preset[1], $preset[2] == '-' ? 0 - $preset[3] : $preset[3]];
         } else $preset = [$preset[1] ?? '', 0];
 
-        $where .= strtr(' AND date >= "$from" AND date <= "$to"', [
-            '$from' => $from->format(self::DATE_FORMAT),
-            '$to' => $to->format(self::DATE_FORMAT),
-        ]);
-        $sql = "SELECT $select FROM tuya_log WHERE {where} ORDER BY date";
+        $where .= ' AND date >= :from AND date <= :to';
+        $wParams[':from'] = $from->format(self::DATE_FORMAT);
+        $wParams[':to'] = $to->format(self::DATE_FORMAT);
 
-        $entries = DB::start()->all(strtr($sql, ['{where}' => $where]));
-        $cur = DB::start()->one(strtr($sql, ['{where}' => $curWhere]) . ' DESC');
+        $entries = DB::start()->all(strtr($sql, ['{where}' => $where]), $wParams);
         if (empty($cur)) Helper::redirect();
         $field = json_decode($cur['fields'], true);
         $cur['fields'] = array_map(fn($i) => array_map(fn($i, $k) =>
@@ -176,7 +177,7 @@ class Html
 
     public static function skip($key = null)
     {
-        $cookie = explode('||', $_COOKIE['toggle_inputs']);
+        $cookie = explode('||', $_COOKIE['toggle_inputs'] ?? '');
 
         return empty($key) ? $cookie : in_array($key, $cookie);
     }

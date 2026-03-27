@@ -10,7 +10,10 @@ class Dev extends Cfg
 
     public static function create(string $dev): self
     {
-        $dev = DB::start()->one("SELECT * FROM points_view WHERE name='$dev'");
+        $dev = DB::start()->one(
+            'SELECT * FROM points_view WHERE name=:dev',
+            [':dev' => $dev]
+        );
         if (empty($dev['class'])) exit("Device not found!\n");
 
         return new self($dev);
@@ -27,13 +30,17 @@ class Dev extends Cfg
 
     public static function all(): array
     {
-        $query = 'SELECT * FROM points_view WHERE ' .
-            (IS_WEB ? "JSON_EXTRACT(users, '$.\""
-                . Auth::id() . "\"') IS NOT Null"
-                : 'active=1');
+        if (IS_WEB) {
+            $where = 'JSON_EXTRACT(users, :id) IS NOT Null';
+            $params[':id'] = '$."' . Auth::id() . '"';
+        } else {
+            $where = 'active=:active';
+            $params[':active'] = 1;
+        }
 
-        foreach (DB::start()->all($query) ?? [] as $item)
-            $cfgs[] = new self($item);
+        $query = "SELECT * FROM points_view WHERE $where";
+        $cfgs = array_map(fn($i) =>
+        new self($i), DB::start()->all($query, $params) ?? []);
 
         return $cfgs ?? [];
     }

@@ -4,6 +4,7 @@ namespace Helpers;
 
 use PDO;
 use DateTime;
+use PDOStatement;
 
 class DB
 {
@@ -37,14 +38,14 @@ class DB
         );
     }
 
-    public function one(string $query)
+    public function one(string $query, array $params = [])
     {
-        return $this->query($query)->fetch();
+        return $this->query($query, $params)->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function all(string $query)
+    public function all(string $query, array $params = [])
     {
-        return $this->query($query)->fetchAll();
+        return $this->query($query, $params)->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public function upsert(string $table, array $data)
@@ -72,12 +73,15 @@ class DB
         return $result;
     }
 
-    private function query(string $query)
+    private function query(string $query, array $params = []): PDOStatement|false
     {
-        return $this->pdo->query($query, PDO::FETCH_ASSOC);
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute($params);
+
+        return $stmt;
     }
 
-    private function exec(string $query, array $data = [])
+    private function exec(string $query, array $data = []): bool
     {
         try {
             $stmt = $this->pdo->prepare($query);

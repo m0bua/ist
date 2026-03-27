@@ -11,11 +11,13 @@ class TuyaApi extends Api
 
     public static function get(Dev $cfg): ?object
     {
-        $id = $cfg->get('address');
-        $date = 'CURRENT_TIMESTAMP - INTERVAL ' . $cfg->get('wait', self::DELAY);
-        $sql = "SELECT * FROM tuya AS t LEFT JOIN tuya_log AS l ON l.t_id = t.id"
-            . " AND l.date >= ($date) WHERE t.id=$id ORDER BY l.date DESC LIMIT 1";
-        $item = DB::start()->one($sql);
+        $sql = 'SELECT * FROM tuya AS t LEFT JOIN tuya_log AS l ON l.t_id = t.id'
+            . ' AND l.date>=:dt WHERE t.id=:id ORDER BY l.date DESC LIMIT 1';
+        $params = [
+            ':id' => $cfg->get('address'),
+            ':dt' => 'CURRENT_TIMESTAMP - INTERVAL ' . $cfg->get('wait', self::DELAY),
+        ];
+        $item = DB::start()->one($sql, $params);
 
         if (empty($item['data'])) {
             $tuya = new Api($item);
@@ -33,7 +35,7 @@ class TuyaApi extends Api
                     $res->status->{"$k$field"} = $i;
             $res = json_encode($res);
 
-            DB::start()->upsert('tuya_log', ['t_id' => $id, 'data' => $res]);
+            DB::start()->upsert('tuya_log', ['t_id' => $cfg->get('address'), 'data' => $res]);
         } else $res = $item['data'];
 
         $res = json_decode($res);

@@ -32,7 +32,7 @@ class Auth
         if (
             $_SERVER['SCRIPT_NAME'] !== self::LOGIN_PATH
             && !$this->authorized($_GET['d'] ?? self::$user ?? null)
-        ) exit(header('location: ' . self::LOGIN_PATH));
+        ) Helper::redirect(self::LOGIN_PATH);
     }
 
     public static function id(): ?string
@@ -52,13 +52,24 @@ class Auth
         $sql = "SELECT points.name FROM user_points
             INNER JOIN auth ON auth.id = user_points.user_id
             INNER JOIN points ON points.id = user_points.point_id";
-        if (!empty($_SESSION['id'])) $where[] = "auth.id='{$_SESSION['id']}'";
-        elseif (isset(self::$user)) $where[] = "auth.login='" . self::$user . "'";
-        else return [];
-        if ($admin) $where[] = "user_points.admin=1";
+        if (!empty($_SESSION['id'])) {
+            $where[] = 'auth.id=:id';
+            $params[':id'] = $_SESSION['id'];
+        } elseif (isset(self::$user)) {
+            $where[] = 'auth.login=:login';
+            $params[':login'] = self::$user;
+        } else return [];
+
+        if ($admin) {
+            $where[] = 'user_points.admin=:admin';
+            $params[':admin'] = 1;
+        }
         if (!empty($where)) $sql .= ' WHERE ' . implode(' AND ', $where);
 
-        $result = array_map(fn($i) => $i['name'], DB::start()->all($sql) ?? []);
+        $result = array_map(
+            fn($i) => $i['name'],
+            DB::start()->all($sql, $params ?? []) ?? []
+        );
 
         return $result;
     }
@@ -67,17 +78,18 @@ class Auth
     {
         if (empty($user) || empty($pass)) return;
         self::$user = $user;
-        $model = DB::start()->one("SELECT * FROM auth WHERE login='$user'");
-        if (empty($model['hash'])) {
-            $created = Helper::date();
-            $model = [
-                'login' => $user,
-                'auth' => false,
-                'hash' => $this->hash($user, $pass, $created),
-                'created' => $created,
-                'create_ip' => Helper::ip()
-            ];
-        }
+        $model = DB::start()->one(
+            'SELECT * FROM auth WHERE login=:user',
+            [':user' => $user]
+        );
+        $created = Helper::date();
+        if (empty($model['hash'])) $model = [
+            'login' => $user,
+            'auth' => false,
+            'hash' => $this->hash($user, $pass, $created),
+            'created' => $created,
+            'create_ip' => Helper::ip()
+        ];
 
         $this->setData($model);
         $hash = $this->hash($user, $pass, $this->data['created']);
@@ -99,9 +111,10 @@ class Auth
     private function authorized(?string $client = null): bool
     {
         if (empty($client)) {
-            if (empty($_SESSION['id'])) return false;
-            $sql = "SELECT * FROM auth WHERE id='{$_SESSION['id']}' AND auth=1";
-            $user = DB::start()->one($sql);
+            $user = DB::start()->one(
+                "SELECT * FROM auth WHERE id=:id AND auth=:auth",
+                [':id' => $_SESSION['id'] ?? 0, ':auth' => 1]
+            );
             if (empty($user)) {
                 unset($_SESSION['id']);
                 return false;
