@@ -13,8 +13,6 @@ class Auth
     private const TABLE = 'auth';
     private const LOGIN_PATH = '/login.php';
 
-    private static string $user;
-
     function __construct()
     {
         ini_set('session.cache_expire', self::SESSION_EXP_MIN);
@@ -24,15 +22,11 @@ class Auth
 
     public function start(): void
     {
-        $crd = empty($_POST) ? $_GET : $_POST;
-        $this->autorize(
-            $crd['username'] ?? $crd['u'] ?? '',
-            $crd['password'] ?? $crd['p'] ?? '',
-        );
+        $this->autorize();
 
         if (
             $_SERVER['SCRIPT_NAME'] !== self::LOGIN_PATH
-            && !$this->authorized($_GET['d'] ?? self::$user ?? null)
+            && !$this->authorized($_GET['d'] ?? self::getUser() ?? null)
         ) Helper::redirect(self::LOGIN_PATH);
     }
 
@@ -56,9 +50,9 @@ class Auth
         if (!empty($_SESSION['id'])) {
             $where[] = 'auth.id=:id';
             $params[':id'] = $_SESSION['id'];
-        } elseif (isset(self::$user)) {
+        } elseif (!empty(self::getUser())) {
             $where[] = 'auth.login=:login';
-            $params[':login'] = self::$user;
+            $params[':login'] = self::getUser();
         } else return [];
 
         if ($admin) {
@@ -75,10 +69,11 @@ class Auth
         return $result;
     }
 
-    private function autorize(string $user, string $pass): void
+    private function autorize(): void
     {
+        $user = self::getUser();
+        $pass = self::getPwd();
         if (empty($user) || empty($pass)) return;
-        self::$user = $user;
         $model = DB::start()->one(
             'SELECT * FROM auth WHERE login=:user',
             [':user' => $user]
@@ -113,8 +108,8 @@ class Auth
     {
         if (empty($client)) {
             if (empty($_SESSION['id'])) return false;
-            $sql = "SELECT * FROM auth WHERE id='{$_SESSION['id']}' AND auth=1";
-            $user = DB::start()->one($sql);
+            $sql = "SELECT * FROM auth WHERE id=:id AND auth=1";
+            $user = DB::start()->one($sql, [':id' => $_SESSION['id']]);
             if (empty($user)) {
                 unset($_SESSION['id']);
                 return false;
@@ -122,5 +117,20 @@ class Auth
         }
 
         return empty($client) ? true : in_array($client, self::clients(false));
+    }
+
+    private static function getUser()
+    {
+        return self::getCrd()['username'] ?? self::getCrd()['u'] ?? '';
+    }
+
+    private static function getPwd()
+    {
+        return self::getCrd()['password'] ?? self::getCrd()['p'] ?? '';
+    }
+
+    private static function getCrd()
+    {
+        return empty($_POST) ? $_GET : $_POST;
     }
 }

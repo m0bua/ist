@@ -110,7 +110,7 @@ class DB
             $stmt = $this->pdo->prepare($query);
             $result = $stmt->execute($data);
         } catch (\PDOException $e) {
-            echo $e->getMessage() . ", SQL: $query\n";
+            error_log($e->getMessage() . ", SQL: $query\n");
         }
 
         return $result ?? false;
