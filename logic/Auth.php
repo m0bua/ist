@@ -15,9 +15,12 @@ class Auth
 
     function __construct()
     {
-        ini_set('session.cache_expire', self::SESSION_EXP_MIN);
+        ini_set('session.cookie_httponly', 1);
+        ini_set('session.use_strict_mode', 1);
+        ini_set('session.cookie_samesite', 'Strict');
         ini_set('session.gc_maxlifetime', self::SESSION_EXP_SEC);
-        session_start(['cookie_lifetime' => self::SESSION_EXP_SEC]);
+        ini_set('session.cookie_lifetime', self::SESSION_EXP_SEC);
+        session_start();
     }
 
     public function start(): void
@@ -82,26 +85,37 @@ class Auth
         if (empty($model['hash'])) $model = [
             'login' => $user,
             'auth' => false,
-            'hash' => $this->hash($user, $pass, $created),
+            'hash' => self::hash($user, $pass, $created),
             'created' => $created,
             'create_ip' => Helper::ip()
         ];
 
         $this->setData($model);
-        $hash = $this->hash($user, $pass, $this->data['created']);
-
-        if ($this->data['hash'] === $hash) {
-            if ((bool)$this->data['auth'])
-                $_SESSION['id'] = $this->data['id'] ?? null;
+        if (self::verify($user, $pass, $this->data['created'], $this->data['hash'])) {
+            if ((bool)$this->data['auth']) $_SESSION['id'] = $this->data['id'] ?? null;
             $this->data['last_login'] = Helper::date();
             $this->data['last_login_ip'] = Helper::ip();
         }
         if (isset($_SESSION['id']) && empty($_GET)) Helper::redirect();
     }
 
-    private function hash(string $usr, string $pwd, string $created): string
+    private static function hash(string $usr, string $pwd, string $created): string
     {
-        return sha1(implode('-', [$usr, $pwd, Helper::date($created)]));
+        return sha1(self::pass($usr, $pwd, $created));
+        // TODO: update on creating all hashes.
+        // return password_hash(self::pass($usr, $pwd, $created), PASSWORD_DEFAULT);
+    }
+
+    private static function verify(string $usr, string $pwd, string $created, string $hash): bool
+    {
+        return self::hash($usr, $pwd, $created) === $hash;
+        // TODO: update on creating all hashes.
+        // return password_verify(self::pass($usr, $pwd, $created), $hash);
+    }
+
+    private static function pass(string $usr, string $pwd, string $created): string
+    {
+        return implode('-', [$usr, $pwd, Helper::date($created)]);
     }
 
     private function authorized(?string $client = null): bool
