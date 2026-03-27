@@ -282,14 +282,29 @@ class Html
         DateTime $to,
         array $preset
     ): stdClass {
-        $query = ['chart' => $dev->get('name')];
-        $back = $fwd = $preset;
-        if (!$back[0]) unset($back[0]);
-        if (!--$back[1]) unset($back[1]);
-        elseif ($back[1] > 0) $back[1] = " $back[1]";
-        if (!$fwd[0]) unset($fwd[0]);
-        if (!++$fwd[1]) unset($fwd[1]);
-        elseif ($fwd[1] > 0) $fwd[1] = " $fwd[1]";
+        $preset = array_filter($preset);
+        if (empty($preset[1])) $preset[1] = 0;
+        $b = $f = $preset;
+        if (empty($preset[0])) {
+            $b = [
+                'from' => (clone $from)->add($to->diff($from))->format(self::DATE_FORMAT),
+                'to' => (clone $to)->add($to->diff($from))->format(self::DATE_FORMAT),
+            ];
+            $f = [
+                'from' => (clone $from)->add($from->diff($to))->format(self::DATE_FORMAT),
+                'to' => (clone $to)->add($from->diff($to))->format(self::DATE_FORMAT),
+            ];
+        } else {
+            if (!--$b[1]) unset($b[1]);
+            elseif ($b[1] > 0) $b[1] = " $b[1]";
+            if (!++$f[1]) unset($f[1]);
+            elseif ($f[1] > 0) $f[1] = " $f[1]";
+            $b = ['preset' => implode($b ?? -1)];
+            $f = ['preset' => implode($f ?? 1)];
+            if (empty($b['preset'])) unset($b['preset']);
+            if (empty($f['preset'])) unset($f['preset']);
+        }
+        $q = ['chart' => $dev->get('name')];
         return (object)[
             'dev' => $dev,
             'current' => (object)$cur,
@@ -298,14 +313,14 @@ class Html
             'charts' => $charts,
             'urls' => (object)[
                 'buttons' => [
-                    'Default' => http_build_query($query),
-                    'Hour' => http_build_query(array_merge($query, ['preset' => 'hour'])),
-                    'Today' => http_build_query(array_merge($query, ['preset' => 'today'])),
-                    'Week' => http_build_query(array_merge($query, ['preset' => 'week'])),
-                    'Month' => http_build_query(array_merge($query, ['preset' => 'month'])),
+                    'Default' => http_build_query($q),
+                    'Hour' => http_build_query(array_merge($q, ['preset' => 'hour'])),
+                    'Today' => http_build_query(array_merge($q, ['preset' => 'today'])),
+                    'Week' => http_build_query(array_merge($q, ['preset' => 'week'])),
+                    'Month' => http_build_query(array_merge($q, ['preset' => 'month'])),
                 ],
-                'back' => http_build_query(array_merge($query, empty($back) ? [] : ['preset' => implode($back)])),
-                'fwd' => http_build_query(array_merge($query, empty($fwd) ? [] : ['preset' => implode($fwd)])),
+                'back' => http_build_query(array_merge($q, $b)),
+                'fwd' => http_build_query(array_merge($q, $f)),
             ],
         ];
     }
