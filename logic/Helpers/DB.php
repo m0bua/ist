@@ -4,6 +4,7 @@ namespace Helpers;
 
 use PDO;
 use DateTime;
+use PDOException;
 use PDOStatement;
 
 class DB
@@ -12,6 +13,8 @@ class DB
     private static $username;
     private static $password;
     private static $options;
+
+    private static array $tableMeta = [];
 
     private $pdo;
 
@@ -36,44 +39,64 @@ class DB
             self::$password,
             self::$options
         );
+        $this->pdo->setAttribute(
+            PDO::ATTR_ERRMODE,
+            PDO::ERRMODE_EXCEPTION
+        );
     }
 
-    public function one(string $query, array $params = [])
+    public function one(string $query, array $params = []): array
     {
-        return $this->query($query, $params)->fetch(PDO::FETCH_ASSOC);
+        try {
+            return $this->query($query, $params)->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
     }
 
-    public function all(string $query, array $params = [])
+    public function all(string $query, array $params = []): array
     {
-        return $this->query($query, $params)->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            return $this->query($query, $params)->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log($e->getMessage());
+            return [];
+        }
     }
 
     public function upsert(string $table, array $data)
     {
-        $cols = array_column(self::start()->all("DESCRIBE $table"), 'Field');
-        $data = array_filter($data, fn($k) =>
-        in_array($k, $cols, true), ARRAY_FILTER_USE_KEY);
-        if (empty($data)) return;
+        if (!isset(self::$tableMeta[$table])) {
+            $schema = $this->all("DESCRIBE `$table` ");
+            self::$tableMeta[$table] = [
+                'cols' => array_column($schema, 'Field'),
+                'keys' => array_column(array_filter($schema, fn($f) => !empty($f['Key'])), 'Field')
+            ];
+        }
+        $data = array_intersect_key($data, array_flip(self::$tableMeta[$table]['cols']));
+        if (empty($data)) return false;
 
         $data = array_map(fn($i) => match (true) {
-            is_object($i) && get_class($i) == DateTime::class => $i->format('Y-m-d H:i:s'),
+            $i instanceof DateTime => $i->format('Y-m-d H:i:s'),
             is_bool($i) => (int)$i,
             default => $i
         }, $data);
 
         $keys = array_keys($data);
-        $fields = implode(', ', $keys);
+        $cols = array_diff($keys, self::$tableMeta[$table]['keys']);
+        $fields = implode(', ', array_map(fn($i) => "`$i`", $keys));
         $values = implode(', ', array_map(fn($i) => ":$i", $keys));
-        $update = implode(', ', array_map(fn($i) => "$i=:$i", $keys));
-        $query = "INSERT INTO $table ($fields) VALUES ($values)
-            ON DUPLICATE KEY UPDATE $update";
+        $query = "INTO `$table` ($fields) VALUES ($values)";
 
-        $result = $this->exec($query, $data);
+        $query = empty($cols) ? "INSERT IGNORE $query"
+            : "INSERT $query ON DUPLICATE KEY UPDATE "
+            . implode(', ', array_map(fn($k) => "`$k` = VALUES(`$k`)", $cols));
 
-        return $result;
+        return $this->exec($query, $data);
     }
 
-    private function query(string $query, array $params = []): PDOStatement|false
+    private function query(string $query, array $params = []): PDOStatement
     {
         $stmt = $this->pdo->prepare($query);
         $stmt->execute($params);

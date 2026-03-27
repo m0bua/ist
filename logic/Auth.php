@@ -110,17 +110,18 @@ class Auth
 
     private function authorized(?string $client = null): bool
     {
-        if (empty($client)) {
-            $user = DB::start()->one(
-                "SELECT * FROM auth WHERE id=:id AND auth=:auth",
-                [':id' => $_SESSION['id'] ?? 0, ':auth' => 1]
-            );
-            if (empty($user)) {
-                unset($_SESSION['id']);
-                return false;
-            }
+        $user = DB::start()->one(
+            "SELECT count(*) as count FROM auth WHERE id=:id AND auth=1",
+            [':id' => (int)($_SESSION['id'] ?? 0)]
+        );
+        if ($user['count'] > 0) return true;
+        else {
+            unset($_SESSION['id']);
+            return false;
         }
 
-        return empty($client) ? true : in_array($client, self::clients(false));
+        if (empty($client)) return true;
+
+        return in_array($client, self::clients(false));
     }
 }
