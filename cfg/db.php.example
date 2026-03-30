@@ -2,11 +2,12 @@
 
 return [
     'host' => 'db',
-    'base' => 'i',
+    'base' => 'ist',
     'user' => 'root',
     'pass' => 'secret',
-    'opt' => [
-        Pdo\Mysql::ATTR_INIT_COMMAND =>
-        "SET sql_mode = REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY','')"
-    ]
+    // php 8.2: \PDO::MYSQL_ATTR_INIT_COMMAND
+    'opt' => [Pdo\Mysql::ATTR_INIT_COMMAND => "SET " . implode(', ', [
+        "time_zone = 'Europe/Kyiv'",
+        "sql_mode = REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY','')"
+    ])]
 ];
