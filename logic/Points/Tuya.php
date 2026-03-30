@@ -101,7 +101,7 @@ class Tuya implements Point
             }
 
             return $result;
-        }, array_keys($fields), $i), 'key'), $fields);
+        }, array_keys($i), $i), 'key'), $fields);
 
         return $fields;
     }

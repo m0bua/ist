@@ -111,7 +111,7 @@ class Html
             $colors = self::CHART_COLORS;
             foreach (array_values($fArray) as $key => $field) {
                 $title = ucfirst($field->name ?? $field->key);
-                $suffixes[] = $field->suffix;
+                $suffixes[] = $field->suffix ?? '';
                 $data = array_map(fn($i) => [strtotime($i['date']), $i['online'] == 'true'
                     ? Helper::getArrayKey($i, "fields.$field->key") : 0], $entries);
                 $on = date_create();

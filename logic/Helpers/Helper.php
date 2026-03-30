@@ -99,7 +99,9 @@ class Helper
             : (is_array($value) ? $value : array_map(fn($i)
             => self::getArrayKey($i, $value), $array));
 
-        return array_combine($keys, (array)$values);
+        $result = array_combine($keys, (array)$values);
+
+        return $result;
     }
 
     public static function ip(): string
