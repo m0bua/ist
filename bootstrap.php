@@ -11,10 +11,14 @@ spl_autoload_register(function ($class) {
     if (file_exists($file)) include $file;
 });
 
-if (is_file('cfg/php.php')) {
+if (is_file(ROOT.'/cfg/php.php')) {
     $cfg = include 'cfg/php.php';
-    if (is_array($cfg)) foreach (include 'cfg/php.php' as $opt => $val)
-        ini_set($opt, $val);
+    if (is_array($cfg))
+        foreach ($cfg as $opt => $val) {
+            ini_set($opt, $val);
+            if ($opt == 'date.timezone')
+                date_default_timezone_set($val);
+        }
 }
 
 Helpers\DB::config(include 'cfg/db.php');
