@@ -24,12 +24,12 @@ class TuyaApi extends Api
                 echo ($dev->msg ?? json_encode($dev)) . "\n";
                 return null;
             }
-
             $res = $dev->result;
+
             $res->status = (object)Helper::pluck($res->status, 'code', 'value');
             foreach ($cfg->get('params.tData.decode', []) as $key => $field)
-                foreach (self::phaseParse($res->status->{$key}) as $k => $i)
-                    $res->status->{"$k$field"} = $i;
+                foreach (self::decode($res->status->{$key}, $field['fields']) as $k => $i)
+                    $res->status->{"$k{$field['name']}"} = $i;
             $res = json_encode($res);
 
             DB::start()->upsert('tuya_log', ['t_id' => $cfg->get('address'), 'data' => $res]);
@@ -40,14 +40,15 @@ class TuyaApi extends Api
         return $res;
     }
 
-    private static function phaseParse(string $base64Data): array
+    private static function decode(string $base64Data, array $fields): array
     {
+        $i = 0;
         $hex = bin2hex(base64_decode($base64Data));
+        foreach ($fields as $key => $offset) {
+            $result[$key] = hexdec(substr($hex, $i, $offset));
+            $i += $offset;
+        }
 
-        return [
-            'V' => hexdec(substr($hex, 0, 4)),
-            'A' => hexdec(substr($hex, 4, 6)),
-            'W' => hexdec(substr($hex, 10, 6)),
-        ];
+        return $result ?? [];
     }
 }
