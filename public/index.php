@@ -12,7 +12,7 @@ if (isset($_GET['d']) || isset($_GET['u'])) {
 } elseif (isset($_GET['cfg']) && isset($_GET['name'])) {
     exit(Dev::create($_GET['name'])->change($_GET['cfg']));
 } elseif (isset($_GET['chart'])) {
-    include '../view/tuya.php';
+    include '../view/chart.php';
     exit;
 }
 ?>

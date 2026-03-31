@@ -69,7 +69,7 @@ class Html
                 date_create()->modify('-1hour+1min'),
                 date_create()->modify('+1min')
             ],
-            'today' => [
+            'day' => [
                 date_create()->setTime(0, 0),
                 date_create()->setTime(0, 0)->modify('+1day')
             ],
@@ -315,7 +315,7 @@ class Html
                 'buttons' => [
                     'Default' => http_build_query($q),
                     'Hour' => http_build_query(array_merge($q, ['preset' => 'hour'])),
-                    'Today' => http_build_query(array_merge($q, ['preset' => 'today'])),
+                    'Day' => http_build_query(array_merge($q, ['preset' => 'day'])),
                     'Week' => http_build_query(array_merge($q, ['preset' => 'week'])),
                     'Month' => http_build_query(array_merge($q, ['preset' => 'month'])),
                 ],
