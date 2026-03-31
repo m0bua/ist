@@ -12,7 +12,7 @@ $data = Html::getTData($_GET);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
-  <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603311425">
+  <link rel=stylesheet type="text/css" href="res/tuya.css?v=202603311500">
 </head>
 
 <body id="body" class="dark">
@@ -30,7 +30,7 @@ $data = Html::getTData($_GET);
           <input type="checkbox" id="showMore" name="show_more" <?= Html::skip('show_more') ? 'checked' : '' ?>>
           <?php foreach ($data->current->fields as $fields): ?>
             <?php $decimals = max(array_map(fn($i) => strlen(substr(strrchr((string)$i->value, "."), 1)), $fields)) ?>
-            <center>
+            <div class="centered">
               <?php foreach ($fields as $k => $field) if (!empty($field)): ?>
                 <div class="field">
                   <?php if (isset($field->name)): ?>
@@ -42,24 +42,24 @@ $data = Html::getTData($_GET);
                   <?php endif ?>
                 </div>
               <?php endif ?>
-            </center>
+            </div>
           <?php endforeach ?>
         <?php else: ?>
           Off
         <?php endif ?>
       </h1>
     </label>
-    <center>
+    <div class="centered">
       Updated at
       <?= str_replace(' ', '&nbsp;', date_create($data->current->date)->format('Y-m-d H:i:s')) ?>
-    </center>
+    </div>
     <?php foreach ($data->dev->get('dates') as $k => $i): ?>
       <?php if (!empty($i)): ?>
-        <center style="color:<?= $data->dev->class()::COLORS[$k] ?>">
+        <div class="centered" style="color:<?= $data->dev->class()::COLORS[$k] ?>">
           Last&nbsp;<?= $data->dev->class()::STATUSES[$k] ?>:
           <?= str_replace(' ', '&nbsp;', date_create($i)->format('Y.m.d\&\n\b\s\p;H:i')) ?>
           (<?= str_replace(' ', '&nbsp;', date_create()->diff(date_create($i))->format('%ad&nbsp;%H:%I')) ?>&nbsp;ago).
-        </center>
+        </div>
       <?php endif ?>
     <?php endforeach ?>
   </section>
@@ -98,18 +98,18 @@ $data = Html::getTData($_GET);
         <?php $ranges = array_filter($chart->ranges, fn($i)
         => strpos(strtolower($i->title), 'total') === false) ?>
         <?php if (count($ranges) > 1): ?>
-          <center><?= min(array_column($ranges, 'min')) ?> - <?= max(array_column($ranges, 'max')) ?></center>
+          <div class="centered"><?= min(array_column($ranges, 'min')) ?> - <?= max(array_column($ranges, 'max')) ?></div>
         <?php endif ?>
         <?php foreach ($chart->ranges as $k => $range): ?>
           <label class="show_toggle">
-            <input type="checkbox" id="showMore" name="show_<?= $chart->key ?>_<?= $range->key ?>"
+            <input type="checkbox" name="show_<?= $chart->key ?>_<?= $range->key ?>"
               <?= Html::skip("show_{$chart->key}_{$range->key}") ? 'checked' : '' ?> data-reload="true">
-            <center class="min_max" style="color:<?= $chart->chart->colors[$k] ?>">
+            <div class="centered min_max" style="color:<?= $chart->chart->colors[$k] ?>">
               <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
               on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
               off: <?= $range->off ?><?php endif ?>
               (entries: <?= $range->count  ?>).
-            </center>
+            </div>
           </label>
         <?php endforeach ?>
       <?php endif ?>

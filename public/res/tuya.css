@@ -4,7 +4,6 @@ body {
     margin: 0;
     padding: 0;
     color: lightgray;
-    top: 0;
 }
 
 section {
@@ -24,11 +23,12 @@ button {
     border-color: #555;
 }
 
-center {
+.centered {
+    text-align: center;
     margin: .3em 0;
 }
 
-.show_toggle * {
+.show_toggle {
     user-select: none;
 }
 
@@ -48,7 +48,8 @@ center {
     left: -1.2em;
 }
 
-#current #status {
+#status {
+    display: block;
     width: fit-content;
     max-width: 80vw;
     margin: 1em auto;
@@ -57,37 +58,31 @@ center {
     border-radius: 1em;
 }
 
-#current #status * {
+#status h1 {
     margin: 0;
 }
 
-#current #status {
-    display: block;
-}
-
-#current #status h1 #showMore~center+center {
-    margin-top: .3em;
-}
-
-#current #status h1 #showMore:not(:checked)~center+center {
-    display: none;
-}
-
-#current #status h1 .field {
+#status h1 .field {
     display: inline-block;
-    display: table-cell;
-    padding: 0 .2em;
     word-spacing: -1em;
 }
 
-#current #status h1 .field span {
+#status h1 .field span {
     font-size: .5em;
 }
 
-#current #status h1 .field .name {
+#status h1 .field .name {
     opacity: .7;
     vertical-align: middle;
     margin-right: .3em;
+}
+
+#showMore~.centered+.centered {
+    margin-top: .3em;
+}
+
+#showMore:not(:checked)~.centered+.centered {
+    display: none;
 }
 
 #empty {
@@ -105,23 +100,13 @@ center {
     max-width: 80vw;
 }
 
-#dates * {
-    margin: auto 1em;
-    padding: 5px;
-    line-height: 1;
-}
-
-#dates #presets {
-    margin: 1em auto;
-}
-
 #dates a {
     display: inline-block;
     text-decoration: none;
     vertical-align: middle;
     position: absolute;
     top: 50%;
-    transform: translate(0, -50%);
+    transform: translateY(-50%);
 }
 
 #dates a:first-child {
@@ -140,6 +125,7 @@ center {
 #dates input {
     display: inline-block;
     padding: 5px 1.5em;
+    margin: .5em;
     max-width: 100%;
 }
 
@@ -173,18 +159,20 @@ center {
 
 #chart .min_max {
     display: inline-block;
-    width: auto;
     margin: .3em;
+}
+
+#chart .show_toggle> :checked~.min_max:before,
+#chart .show_toggle> :not(:checked)~.min_max:before {
+    color: white;
 }
 
 #chart .show_toggle> :checked~.min_max:before {
     content: '-';
-    color: white;
 }
 
 #chart .show_toggle> :not(:checked)~.min_max:before {
     content: '+';
-    color: white;
 }
 
 @media screen and (max-width: 1600px) {
@@ -199,20 +187,16 @@ center {
         margin: .5em auto;
     }
 
-    #current #status h1 .field {
+    #status h1 .field {
         display: block;
     }
 
-    #current #status h1 #showMore~center+center {
+    #showMore~.centered+.centered {
         margin-top: .7em;
     }
 
     #dates {
         margin: .5em 3em;
-    }
-
-    #dates * {
-        margin: 1em auto;
     }
 
     #dates span {
@@ -223,10 +207,6 @@ center {
         margin: auto;
         padding: 0;
         text-align: center;
-    }
-
-    #dates input {
-        margin: .5em;
     }
 
     #chart .min_max {
@@ -244,8 +224,8 @@ center {
     }
 
     #dates {
-        margin: .5em 1em;
-        padding: .1em 3em;
+        margin: 0;
+        padding: 0;
     }
 
     #dates input {
@@ -253,26 +233,11 @@ center {
         margin: .3em;
     }
 
-    #dates a:first-child {
-        left: 0;
-    }
-
-    #dates a:last-child {
-        right: 0;
-    }
-}
-
-@media screen and (max-width: 300px) {
-    #dates {
-        margin: 0;
-        padding: 0;
-    }
-
     #dates a {
         display: none;
     }
 
-    #current #status {
+    #status {
         padding: 15px 10px;
     }
 }
