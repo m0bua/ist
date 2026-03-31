@@ -38,8 +38,8 @@ center {
 
 #back {
     position: absolute;
-    top: -1.7em;
-    left: 0;
+    top: -.5em;
+    left: 1.5em;
 }
 
 #back svg {
@@ -194,10 +194,6 @@ center {
 }
 
 @media screen and (max-width: 980px) {
-    body {
-        margin-top: 3em;
-    }
-
     section {
         width: 98vw;
         margin: .5em auto;
