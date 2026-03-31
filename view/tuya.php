@@ -51,7 +51,7 @@ $data = Html::getTData($_GET);
     </label>
     <center>
       Updated at
-      <?= str_replace(' ', '&nbsp;', date_create($data->current->date)->format('Y-m-d H:i')) ?>
+      <?= str_replace(' ', '&nbsp;', date_create($data->current->date)->format('Y-m-d H:i:s')) ?>
     </center>
     <?php foreach ($data->dev->get('dates') as $k => $i): ?>
       <?php if (!empty($i)): ?>

@@ -10,7 +10,7 @@ body {
 section {
     position: relative;
     width: 80vw;
-    margin: 3em auto;
+    margin: 1em auto;
 }
 
 a {
@@ -199,6 +199,7 @@ center {
     }
 
     section {
+        width: 98vw;
         margin: .5em auto;
     }
 
@@ -242,6 +243,10 @@ center {
 }
 
 @media screen and (max-width: 500px) {
+    section {
+        margin: auto;
+    }
+
     #dates {
         margin: .5em 1em;
         padding: .1em 3em;
@@ -262,10 +267,6 @@ center {
 }
 
 @media screen and (max-width: 300px) {
-    section {
-        margin: auto;
-    }
-
     #dates {
         margin: 0;
         padding: 0;
