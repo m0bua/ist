@@ -85,12 +85,6 @@ button {
     display: none;
 }
 
-#empty {
-    color: red;
-    text-align: center;
-    margin-top: 3em;
-}
-
 #dates {
     margin: 1em auto;
     text-align: center;
@@ -155,6 +149,17 @@ button {
     overflow: auto;
     aspect-ratio: 10/3;
     width: 100%;
+}
+
+
+.empty {
+    color: red;
+    text-align: center;
+    margin-top: 3em;
+}
+
+.empty+.empty {
+    display: none;
 }
 
 #chart .min_max {
