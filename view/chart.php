@@ -91,7 +91,7 @@ $data = Html::getTData($_GET);
     </form>
 
     <?php foreach ($data->charts as $key => $chart): ?>
-      <?php if (array_all($chart->chart->layers, fn($i) => empty($i->data))): ?>
+      <?php if (array_reduce($chart->chart->layers, fn($b, $i) => $b && empty($i->data), true)): ?>
         <div class="empty">No data!</div>
       <?php else: ?><br>
         <div id="chart_<?= $key ?>" class="chart" data-json='<?= json_encode($chart->chart) ?>'><canvas></canvas></div>
