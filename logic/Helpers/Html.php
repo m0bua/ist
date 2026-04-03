@@ -139,7 +139,7 @@ class Html
 
     public static function getChartData(array $params)
     {
-        return new self()->prepareChartsData($params);
+        return (new self)->prepareChartsData($params);
     }
 
     private function prepareChartsData($params)
