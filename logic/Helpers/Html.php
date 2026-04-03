@@ -262,8 +262,9 @@ class Html
         unset($this->preset[0]);
         $date = date_create('1min');
         $this->preset[1] = abs((float)$this->preset[1]);
+        if (empty($this->preset[1])) $this->preset[1] = 1;
         $this->preset[5] = (float)$this->preset[5];
-        $mul = -$this->preset[1] - 1;
+        $mul = -$this->preset[1];
         if (empty($this->preset[4]))
             $this->preset[4] = 'day';
         if (!empty($this->preset[3])) {
@@ -281,7 +282,6 @@ class Html
             $count = abs($this->preset[5]);
             while ($count-- > 0) [$date, $mDate] = [$date->add($diff), $mDate->add($diff)];
         }
-
         $dates = [$date, $mDate];
         sort($dates);
 
@@ -297,7 +297,7 @@ class Html
         $buttons['D'] = $this->presetMod('day');
         $buttons['W'] = $this->presetMod('week');
         $buttons['M'] = $this->presetMod('month');
-        if ($this->preset[1] > 0) $buttons['-'] = $this->presetMod(1, false);
+        if ($this->preset[1] > 1) $buttons['-'] = $this->presetMod(1, false);
         $buttons['+'] = $this->presetMod(1, true);
         $urls = (object)['buttons' => $buttons];
 
@@ -343,6 +343,7 @@ class Html
         }
         if ($preset[5] == 0) $preset[5] = '';
         elseif ($preset[5] > 0) $preset[5] = " $preset[5]";
+        if ($preset[1] == 1) $preset[1] = 0;
         $preset[2] = empty($preset[1]) ? '' : '*';
 
         $result = ['preset' => implode(array_filter($preset))];
