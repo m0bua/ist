@@ -37,7 +37,6 @@ class Html
             ['tag' => 'tr', 'children' => $children]
         ], self::dataJsonRows($configs))]]);
 
-        header('Content-Type: application/json; charset=utf-8');
         return $response;
     }
 

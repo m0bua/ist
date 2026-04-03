@@ -6,27 +6,13 @@ use Helpers\Html;
 
 if (isset($_GET['d']) || isset($_GET['u'])) {
     Dev::createPoint($_GET['d'] ?? $_GET['u'], $_GET);
-    exit;
 } elseif ($_GET['format'] ?? null === 'json') {
-    exit(Html::getClientsJson());
+    header('Content-Type: application/json; charset=utf-8');
+    echo Html::getClientsJson();
 } elseif (isset($_GET['cfg']) && isset($_GET['name'])) {
-    exit(Dev::create($_GET['name'])->change($_GET['cfg']));
+    Dev::create($_GET['name'])->change($_GET['cfg']);
 } elseif (isset($_GET['chart'])) {
     include '../view/chart.php';
-    exit;
+} else {
+    include '../view/clients.php';
 }
-?>
-<!DOCTYPE html>
-<html>
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clients</title>
-    <link rel=stylesheet type="text/css" href="res/index.css">
-    <script src="res/clients.js"></script>
-</head>
-
-<body id="body"></body>
-
-</html>
