@@ -19,9 +19,9 @@ class Html
     const DATE_FORMAT = 'Y-m-d H:i';
 
     private Dev $dev;
-    private array $preset = [];
     private DateTime $from;
     private DateTime $to;
+    private array $preset = [];
 
     public static function getClientsJson(): string
     {
@@ -258,31 +258,27 @@ class Html
 
     protected function dateFromPreset(array $params): void
     {
-        preg_match('/^([-\d.]*)(\*?)([A-z]*)([-\d.]*)$/', $params['preset'] ?? '', $this->preset);
+        preg_match('/^([-\d.]*)(\*?)(clean-|)([A-z]*)([-\s\d.]*)$/', $params['preset'] ?? '', $this->preset);
         unset($this->preset[0]);
         $date = date_create('1min');
-        $this->preset[1] = (float)$this->preset[1];
-        $mul = $this->preset[1] ?? -1;
-        if (empty($mul)) $mul--;
-        $this->preset[4] = (float)$this->preset[4];
-        if (empty($this->preset[3])) {
-            $this->preset[2] = '*';
-            $this->preset[3] = 'day';
-        }
-        if (!empty($this->preset[2])) {
-            if ($mul < 0) $date->modify("1 {$this->preset[3]}");
-            match ($this->preset[3] ?? null) {
+        $this->preset[1] = abs((float)$this->preset[1]);
+        $this->preset[5] = (float)$this->preset[5];
+        $mul = -$this->preset[1] - 1;
+        if (empty($this->preset[4]))
+            $this->preset[4] = 'day';
+        if (!empty($this->preset[3])) {
+            if ($mul < 0) $date->modify("1 {$this->preset[4]}");
+            match ($this->preset[4] ?? null) {
                 'hour' => $date->setTime($date->format('H'), 0, 0),
                 'day' => $date->modify('today'),
                 'week' => $date->modify('monday this week 00:00:00'),
                 'month' => $date->modify('first day of this month 00:00:00'),
             };
         }
-
-        $mDate = (clone $date)->modify("$mul {$this->preset[3]}");
-        if (is_numeric($this->preset[4])) {
-            $diff = $this->preset[4] > 0 ? $mDate->diff($date) : $date->diff($mDate);
-            $count = abs($this->preset[4]);
+        $mDate = (clone $date)->modify("$mul {$this->preset[4]}");
+        if (is_numeric($this->preset[5])) {
+            $diff = $this->preset[5] > 0 ? $mDate->diff($date) : $date->diff($mDate);
+            $count = abs($this->preset[5]);
             while ($count-- > 0) [$date, $mDate] = [$date->add($diff), $mDate->add($diff)];
         }
 
@@ -296,18 +292,17 @@ class Html
         array $cur,
         array $charts,
     ): stdClass {
-        $urls = (object)['buttons' => [
-            '-' => $this->presetMod(1, false),
-            '⟲' => $this->httpQ(),
-            'H' => $this->presetMod('hour'),
-            'D' => $this->presetMod('day'),
-            'W' => $this->presetMod('week'),
-            'M' => $this->presetMod('month'),
-            '+' => $this->presetMod(1, true),
-        ]];
+        $buttons['⟲'] = $this->httpQ();
+        $buttons['H'] = $this->presetMod('hour');
+        $buttons['D'] = $this->presetMod('day');
+        $buttons['W'] = $this->presetMod('week');
+        $buttons['M'] = $this->presetMod('month');
+        if ($this->preset[1] > 0) $buttons['-'] = $this->presetMod(1, false);
+        $buttons['+'] = $this->presetMod(1, true);
+        $urls = (object)['buttons' => $buttons];
 
-        if (empty($this->preset[4])) $this->preset[4] = 0;
-        if (empty($this->preset[3])) {
+        if (empty($this->preset[5])) $this->preset[5] = 0;
+        if (empty($this->preset[4])) {
             $urls->back = $this->httpQ([
                 'from' => (clone $this->from)->add($this->to->diff($this->from))->format(self::DATE_FORMAT),
                 'to' => (clone $this->to)->add($this->to->diff($this->from))->format(self::DATE_FORMAT),
@@ -317,8 +312,8 @@ class Html
                 'to' => (clone $this->to)->add($this->from->diff($this->to))->format(self::DATE_FORMAT),
             ]);
         } else {
-            $urls->back = $this->presetMod(4, false);
-            $urls->fwd = $this->presetMod(4, true);
+            $urls->back = $this->presetMod(5, false);
+            $urls->fwd = $this->presetMod(5, true);
         }
 
         return (object)[
@@ -342,10 +337,13 @@ class Html
             if ($modify) $preset[$position]++;
             else $preset[$position]--;
         } elseif (is_string($position)) {
-            if ($preset[3] == $position)
-                $preset[2] = $preset[2] == '*' ? '' : '*';
-            else $preset[3] = $position;
+            if ($preset[4] == $position)
+                $preset[3] = $preset[3] == 'clean-' ? '' : 'clean-';
+            else $preset[4] = $position;
         }
+        if ($preset[5] == 0) $preset[5] = '';
+        elseif ($preset[5] > 0) $preset[5] = " $preset[5]";
+        $preset[2] = empty($preset[1]) ? '' : '*';
 
         $result = ['preset' => implode(array_filter($preset))];
         if (empty($result['preset'])) unset($result['preset']);
