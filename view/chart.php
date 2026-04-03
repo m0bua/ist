@@ -2,7 +2,7 @@
 
 use Helpers\Html;
 
-$data = Html::getTData($_GET);
+$data = Html::getChartData($_GET);
 ?>
 
 <!DOCTYPE html>
