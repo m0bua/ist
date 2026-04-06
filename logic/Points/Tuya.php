@@ -50,26 +50,22 @@ class Tuya implements Point
         $max = $this->cfg->get('params.tData.max');
         $back = $this->cfg->get('params.tData.back', 1);
         $fields = $this->cfg->get('params.tData.fields', ['voltage']);
-        foreach ($fields as $field) {
-            $v = $res->online ? ($res->status->{$field['key']} ?? 0) / 10 : 0;
-            $vs[] = $v;
-            if ($this->status ?? 1 !== 1) continue;
-            $sCnt = $this->cfg->statusesCnt();
-            $this->status = match (true) {
-                !$res->online => 0,
-                $v > 0 && $min && $sCnt >= 3 && $min > $v => 2,
-                $v > 0 && $max && $sCnt >= 4 && $max < $v => 3,
-                $s == 0 ||
-                    ($min && $s == 2 && ($min + $back) < $v) ||
-                    ($max && $s == 3 && ($max - $back) > $v) => 1,
-                default => $s
-            };
-        }
-        $v = round(array_sum($vs) / count($vs), 1);
+        $vals = array_map(fn($i) => $res->online ? ($res->status->{$i['key']} ?? 0) / 10 : 0, $fields);
+        $val = round(array_sum($vals) / count($vals), 1);
+        $sCnt = $this->cfg->statusesCnt();
+        [$this->status, $val] = match (true) {
+            !$res->online => [0, 0],
+            min($vals) > 0 && $min && $sCnt >= 3 && $min > min($vals) => [2, min($vals)],
+            max($vals) > 0 && $max && $sCnt >= 4 && $max < max($vals) => [3, max($vals)],
+            $s == 0 ||
+                ($min && $s == 2 && ($min + $back) < min($vals)) ||
+                ($max && $s == 3 && ($max - $back) > max($vals)) => [1, $val],
+            default => [$s, $val]
+        };
 
         $this->cfg->set('status', $this->status);
         $this->cfg->set((int)$this->status, Helper::date());
-        $this->cfg->set('v', $v);
+        $this->cfg->set('v', $val);
     }
 
     public static function fields(Dev $dev, array $extraFields = [])
