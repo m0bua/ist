@@ -74,7 +74,7 @@ $data = Html::getChartData($_GET);
       </a>
       <div id="presets">
         <?php foreach ($data->urls->buttons as $name => $url): ?>
-          <input type="button" value="<?= $name ?>" onclick="window.location.href='?<?= $url ?>'">
+          <a <?php if (!empty($url)): ?>href="?<?= $url ?>" <?php endif ?>><?= $name ?></a>
         <?php endforeach ?>
       </div>
       <input name="chart" type="hidden" value="<?= $data->dev->get('name') ?>">

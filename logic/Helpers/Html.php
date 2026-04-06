@@ -297,7 +297,7 @@ class Html
         $buttons['D'] = $this->presetMod('day');
         $buttons['W'] = $this->presetMod('week');
         $buttons['M'] = $this->presetMod('month');
-        if ($this->preset[1] > 1) $buttons['-'] = $this->presetMod(1, false);
+        $buttons['-'] = $this->preset[1] > 1 ? $this->presetMod(1, false) : null;
         $buttons['+'] = $this->presetMod(1, true);
         $urls = (object)['buttons' => $buttons];
 

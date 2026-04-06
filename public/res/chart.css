@@ -94,7 +94,7 @@ button {
     max-width: 80vw;
 }
 
-#dates a {
+#dates>a {
     display: inline-block;
     text-decoration: none;
     vertical-align: middle;
@@ -103,17 +103,36 @@ button {
     transform: translateY(-50%);
 }
 
-#dates a:first-child {
+#dates>a:first-child {
     left: -2em;
 }
 
-#dates a:last-child {
+#dates>a:last-child {
     right: -2em;
 }
 
-#dates a svg {
+#dates>a svg {
     margin: 0;
     padding: 0;
+}
+
+#presets a {
+    display: inline-block;
+    padding: 3px 1.1em;
+    margin: .5em;
+    background-color: #333;
+    color: lightgray;
+    text-decoration: none;
+    user-select: none;
+    border-width: 2px;
+    border-style: outset;
+    border-color: #555;
+    cursor: default;
+}
+
+#dates a:not([href]) {
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
 #dates input {
@@ -208,7 +227,7 @@ button {
         display: none;
     }
 
-    #dates #presets {
+    #presets {
         margin: auto;
         padding: 0;
         text-align: center;
