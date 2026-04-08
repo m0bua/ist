@@ -12,7 +12,7 @@ $data = Html::getChartData($_GET);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
-  <link rel=stylesheet type="text/css" href="res/chart.css?v=202604061156">
+  <link rel=stylesheet type="text/css" href="res/chart.css?v=2026081122">
 </head>
 
 <body id="body" class="dark">
@@ -74,7 +74,11 @@ $data = Html::getChartData($_GET);
       </a>
       <div id="presets">
         <?php foreach ($data->urls->buttons as $name => $url): ?>
-          <a <?php if (!empty($url)): ?>href="?<?= $url ?>" <?php endif ?>><?= $name ?></a>
+          <?php if (is_int($name)): ?>
+            <br>
+          <?php else: ?>
+            <a <?php if (!empty($url)): ?>href="?<?= $url ?>" <?php endif ?>><?= $name ?></a>
+          <?php endif ?>
         <?php endforeach ?>
       </div>
       <input name="chart" type="hidden" value="<?= $data->dev->get('name') ?>">

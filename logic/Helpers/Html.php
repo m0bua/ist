@@ -292,11 +292,12 @@ class Html
         array $cur,
         array $charts,
     ): stdClass {
-        $buttons['⟲'] = $this->httpQ();
         $buttons['H'] = $this->presetMod('hour');
         $buttons['D'] = $this->presetMod('day');
         $buttons['W'] = $this->presetMod('week');
         $buttons['M'] = $this->presetMod('month');
+        $buttons[] = null;
+        $buttons['⟲'] = $this->httpQ();
         $buttons['-'] = $this->preset[1] > 1 ? $this->presetMod(1, false) : null;
         $buttons['+'] = $this->presetMod(1, true);
         $urls = (object)['buttons' => $buttons];
