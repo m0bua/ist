@@ -12,7 +12,7 @@ $data = Html::getChartData($_GET);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><?= str_replace('_', ' ', $data->dev->get('params.name')) ?> Chart</title>
-  <link rel=stylesheet type="text/css" href="res/chart.css?v=2026081122">
+  <link rel=stylesheet type="text/css" href="res/chart.css?v=2026081152">
 </head>
 
 <body id="body" class="dark">

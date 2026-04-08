@@ -132,6 +132,10 @@ button {
     line-height: 1.2;
 }
 
+#presets br {
+    display: none;
+}
+
 #dates a:not([href]) {
     cursor: not-allowed;
     opacity: 0.6;
@@ -202,6 +206,7 @@ button {
 }
 
 @media screen and (max-width: 1600px) {
+
     #chart .min_max {
         display: block;
     }
@@ -219,6 +224,10 @@ button {
 
     #showMore~.centered+.centered {
         margin-top: .7em;
+    }
+
+    #presets br {
+        display: inherit;
     }
 
     #dates {
