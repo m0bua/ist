@@ -260,14 +260,14 @@ class Html
     {
         preg_match('/^([-\d.]*)(\*?)(clean-|)([A-z]*)([-\s\d.]*)$/', $params['preset'] ?? '', $this->preset);
         unset($this->preset[0]);
-        $date = date_create('1min');
         $this->preset[1] = abs((float)$this->preset[1]);
         if (empty($this->preset[1])) $this->preset[1] = 1;
         $this->preset[5] = (float)$this->preset[5];
         $mul = -$this->preset[1];
-        if (empty($this->preset[4]))
-            $this->preset[4] = 'day';
-        if (!empty($this->preset[3])) {
+        if (empty($this->preset[4])) $this->preset[4] = 'day';
+        if (empty($this->preset[3])) $date = date_create('1min');
+        else {
+            $date = date_create();
             if ($mul < 0) $date->modify("1 {$this->preset[4]}");
             match ($this->preset[4] ?? null) {
                 'hour' => $date->setTime($date->format('H'), 0, 0),
