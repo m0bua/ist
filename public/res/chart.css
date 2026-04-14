@@ -183,10 +183,6 @@ button {
     margin-top: 3em;
 }
 
-.empty+.empty {
-    display: none;
-}
-
 #chart .min_max {
     display: inline-block;
     margin: .3em;

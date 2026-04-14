@@ -206,16 +206,16 @@ class Html
                     ->add($dOn->diff(date_create('@' . $i[0])));
                 if (isset($dOff)) $off = ($off ?? date_create())
                     ->add($dOff->diff(date_create('@' . $i[0])));
-                $onR = date_create()->diff($on ?? date_create())
-                    ->format('%ad %H:%I');
-                $offR = date_create()->diff($off ?? date_create())
-                    ->format('%ad %H:%I');
+                $onR = date_create()->diff($on ?? date_create())->format('%ad %H:%I');
+                $offR = date_create()->diff($off ?? date_create())->format('%ad %H:%I');
                 $vals = array_filter($data, fn($i) => $i[1] > 0);
-                if (!empty($vals)) $ranges[] = (object)[
+                $vals1 = array_column($vals, '1');
+                if (empty($vals1)) $vals1[0] = 0;
+                $ranges[] = (object)[
                     'key' => $key,
                     'title' => $title,
-                    'min' => min(array_column($vals, '1')),
-                    'max' => max(array_column($vals, '1')),
+                    'min' => min($vals1),
+                    'max' => max($vals1),
                     'on' => $onR == '0d 00:00' ? 0 : $onR,
                     'off' => $offR == '0d 00:00' ? 0 : $offR,
                     'count' => count($data),

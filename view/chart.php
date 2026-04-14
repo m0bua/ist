@@ -94,30 +94,35 @@ $data = Html::getChartData($_GET);
       </a>
     </form>
 
-    <?php foreach ($data->charts as $key => $chart): ?>
-      <?php if (array_reduce($chart->chart->layers, fn($b, $i) => $b && empty($i->data), true)): ?>
-        <div class="empty">No data!</div>
-      <?php else: ?><br>
-        <div id="chart_<?= $key ?>" class="chart" data-json='<?= json_encode($chart->chart) ?>'><canvas></canvas></div>
-        <?php $ranges = array_filter($chart->ranges, fn($i)
-        => strpos(strtolower($i->title), 'total') === false) ?>
-        <?php if (count($ranges) > 1): ?>
-          <div class="centered"><?= min(array_column($ranges, 'min')) ?> - <?= max(array_column($ranges, 'max')) ?></div>
+    <?php if (array_reduce((array)$data->charts, fn($b, $c) =>
+    array_reduce($c->chart->layers, fn($b, $i) => $b && empty($i->data), $b), true)): ?>
+      <div class="empty">No data!</div>
+    <?php else: ?>
+      <?php foreach ($data->charts as $key => $chart): ?>
+        <?php if (array_reduce($chart->chart->layers, fn($b, $i) => $b && empty($i->data), true)): ?>
+          <div class="empty">No data!</div>
+        <?php else: ?><br>
+          <div id="chart_<?= $key ?>" class="chart" data-json='<?= json_encode($chart->chart) ?>'><canvas></canvas></div>
+          <?php $ranges = array_filter($chart->ranges, fn($i)
+          => strpos(strtolower($i->title), 'total') === false) ?>
+          <?php if (count($ranges) > 1): ?>
+            <div class="centered"><?= min(array_column($ranges, 'min')) ?> - <?= max(array_column($ranges, 'max')) ?></div>
+          <?php endif ?>
+          <?php foreach ($chart->ranges as $k => $range): ?>
+            <label class="show_toggle">
+              <input type="checkbox" name="show_<?= $chart->key ?>_<?= $range->key ?>"
+                <?= Html::skip("show_{$chart->key}_{$range->key}") ? 'checked' : '' ?> data-reload="true">
+              <div class="centered min_max" style="color:<?= $chart->chart->colors[$k] ?>">
+                <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
+                on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
+                off: <?= $range->off ?><?php endif ?>
+                (entries: <?= $range->count  ?>).
+              </div>
+            </label>
+          <?php endforeach ?>
         <?php endif ?>
-        <?php foreach ($chart->ranges as $k => $range): ?>
-          <label class="show_toggle">
-            <input type="checkbox" name="show_<?= $chart->key ?>_<?= $range->key ?>"
-              <?= Html::skip("show_{$chart->key}_{$range->key}") ? 'checked' : '' ?> data-reload="true">
-            <div class="centered min_max" style="color:<?= $chart->chart->colors[$k] ?>">
-              <?= $range->title ?>: <?= $range->min ?> - <?= $range->max ?><?php if (!empty($range->on)): ?>,
-              on: <?= $range->on ?><?php endif ?><?php if (!empty($range->off)): ?>,
-              off: <?= $range->off ?><?php endif ?>
-              (entries: <?= $range->count  ?>).
-            </div>
-          </label>
-        <?php endforeach ?>
-      <?php endif ?>
-    <?php endforeach ?>
+      <?php endforeach ?>
+    <?php endif ?>
 
     <script src="res/chart.min.js"></script>
     <script>
