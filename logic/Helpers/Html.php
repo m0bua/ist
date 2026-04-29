@@ -258,14 +258,15 @@ class Html
 
     protected function dateFromPreset(array $params): void
     {
-        preg_match('/^([-\d.]*)(\*?)(clean-|)([A-z]*)([-\s\d.]*)$/', $params['preset'] ?? '', $this->preset);
+        $regex = '/^([-\d.]*)(\*?)(clean-|)([A-z]*)([-\s\d.]*)$/';
+        preg_match($regex, $params['preset'] ?? '', $this->preset);
         unset($this->preset[0]);
         $this->preset[1] = abs((float)$this->preset[1]);
         if (empty($this->preset[1])) $this->preset[1] = 1;
         $this->preset[5] = (float)$this->preset[5];
         $mul = -$this->preset[1];
         if (empty($this->preset[4])) $this->preset[4] = 'day';
-        if (empty($this->preset[3])) $date = date_create('1min');
+        if (empty($this->preset[3])) $date = date_create($params['from'] ?? '1min');
         else {
             $date = date_create();
             if ($mul < 0) $date->modify("1 {$this->preset[4]}");
@@ -276,7 +277,8 @@ class Html
                 'month' => $date->modify('first day of this month 00:00:00'),
             };
         }
-        $mDate = (clone $date)->modify("$mul {$this->preset[4]}");
+        $mDate = empty($this->preset[3]) && !empty($params['to'])
+            ? date_create($params['to']) : (clone $date)->modify("$mul {$this->preset[4]}");
         if (is_numeric($this->preset[5])) {
             $diff = $this->preset[5] > 0 ? $mDate->diff($date) : $date->diff($mDate);
             $count = abs($this->preset[5]);
